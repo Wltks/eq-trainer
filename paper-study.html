@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ko" data-paper="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EQ Trainer — Paper Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#fffbf3;
+  --paper2:#f8f3e8;
+  --card:#fffefa;
+  --ink:#141310;
+  --line:#ebe5d7;
+  --line2:#d3cdbd;
+  --mute:#948e80;
+  --font:"Poppins","Segoe UI",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Consolas,monospace;
+  --cw:1280px; --pad:40px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--font);font-size:14px;
+  line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button,select{font-family:inherit;font-size:inherit;color:inherit}
+
+/* ══════════ PAPER TEXTURE VARIANTS ══════════ */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:60;
+  mix-blend-mode:multiply;
+}
+/* A — 미세 그레인 : 균일하고 아주 옅은 입자. 가장 소극적 */
+[data-paper="a"] body::before{
+  opacity:.30;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23f)' opacity='0.42'/%3E%3C/svg%3E");
+  background-size:160px 160px;
+}
+/* B — 레이드 페이퍼 : 미세한 평행 결 + 세로 체인라인. 인쇄용지 느낌.
+   1px 하드라인은 배율 1.5배에서 모아레가 생기므로 가장자리를 부드럽게 감쇠시킴 */
+[data-paper="b"] body::before{
+  opacity:1;
+  background-image:
+    repeating-linear-gradient(0deg,  rgba(20,19,16,.030) 0px, rgba(20,19,16,0) 1.6px, rgba(20,19,16,0) 5px),
+    repeating-linear-gradient(90deg, rgba(20,19,16,.020) 0px, rgba(20,19,16,0) 1.4px, rgba(20,19,16,0) 28px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='0.2'/%3E%3C/svg%3E");
+  background-size:auto,auto,140px 140px;
+}
+/* C — 섬유 반점 : 연속 노이즈 대신 드문드문한 점.
+   feColorMatrix로 RGB를 고정 갈색으로 눌러버리고 알파만 노이즈에서 임계 처리 →
+   밝은 점이 아니라 어두운 티끌만 남아 multiply에서 실제로 보임 */
+[data-paper="c"] body::before{
+  opacity:.68;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.09 0 0 0 0 0.08 0 0 0 0 0.06 2 0 0 0 -1.35'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23s)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+}
+
+/* ══════════ SWITCHER ══════════ */
+#sw{position:sticky;top:0;z-index:80;flex-wrap:wrap;display:flex;gap:8px;align-items:center;
+  justify-content:center;padding:9px;background:rgba(20,19,16,.92);color:#fffbf3}
+#sw b{font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;opacity:.6;margin-right:6px}
+#sw button{background:transparent;border:1px solid rgba(255,251,243,.35);border-radius:999px;
+  padding:5px 16px;font-size:12px;cursor:pointer;color:#fffbf3}
+#sw button.on{background:#fffbf3;color:#141310;border-color:#fffbf3;font-weight:600}
+#sw span{font-size:11px;opacity:.55;margin-left:14px}
+
+
+/* ══════════ LAYOUT (static) ══════════ */
+.container{max-width:var(--cw);margin:0 auto;padding:0 var(--pad);width:100%}
+.micro{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--mute);font-weight:500}
+.pill{background:transparent;border:1px solid var(--ink);border-radius:999px;padding:10px 24px;
+  font-size:14px;white-space:nowrap}
+.pill.on{background:var(--ink);color:var(--card)}
+.pill.sm{padding:8px 18px;font-size:13px}
+.pill.solid{background:var(--ink);color:var(--card);font-weight:600;letter-spacing:.03em}
+.circ{width:42px;height:42px;border-radius:50%;border:1px solid var(--ink);background:transparent;
+  display:grid;place-items:center;font-size:14px;flex:0 0 auto}
+.circ.on{background:var(--ink);color:var(--card)}
+.sel{border-bottom:1px solid var(--line2);padding:6px 22px 6px 0;font-weight:500;font-size:15px;
+  display:inline-block;position:relative}
+.sel::after{content:'';position:absolute;right:4px;top:14px;border:4px solid transparent;
+  border-top-color:var(--ink)}
+.link{border-bottom:1.5px solid var(--ink);padding:3px 0;font-weight:600;letter-spacing:.03em}
+.field{display:flex;flex-direction:column;gap:3px}
+.grow{flex:1}
+
+#status{border-bottom:1px solid var(--line);text-align:center;padding:10px 16px;position:relative;z-index:3}
+#head{border-bottom:1px solid var(--line);position:relative;z-index:3}
+.headgrid{display:grid;grid-template-columns:1fr auto 1fr}
+.hcell{padding:18px 28px;display:flex;align-items:center;gap:18px;min-width:0}
+.hcell+.hcell{border-left:1px solid var(--line)}
+.hcell:first-child{padding-left:0}
+.hcell:last-child{padding-right:0;justify-content:flex-end}
+#wordmark{font-weight:700;letter-spacing:-.038em;line-height:.85;text-align:center;
+  font-size:clamp(42px,10.4vw,168px);padding:30px 0 22px;position:relative;z-index:3}
+#wrap{position:relative;z-index:3;padding-bottom:40px}
+.bar{display:flex;gap:26px;align-items:flex-end;flex-wrap:wrap;padding:22px 0 20px;
+  border-bottom:1px solid var(--line)}
+.graph{margin-top:26px;border:1px solid var(--line);background:var(--card);display:block;width:100%;height:auto}
+#nboxes{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-top:none;background:var(--card)}
+.bandrow{display:flex;flex:1 1 330px;min-width:300px}
+.bandtag{width:44px;display:grid;place-items:center;background:var(--ink);color:var(--card);
+  font-weight:700;font-size:13px}
+.nbox{flex:1;padding:11px 14px;min-width:0}
+.nbox+.nbox{border-left:1px solid var(--line)}
+.nbox.act{background:var(--paper2)}
+.nbox .k{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--mute);font-weight:500}
+.nbox .v{font-family:var(--mono);font-size:17px;font-weight:500;letter-spacing:-.03em;margin-top:1px}
+.hint{color:var(--mute);font-size:12px;margin-top:22px;line-height:2.1}
+kbd{border:1px solid var(--line2);border-bottom-width:2px;border-radius:3px;padding:1px 6px;
+  font-family:var(--mono);font-size:11px;color:var(--ink)}
+#folio{border-top:1px solid var(--line);margin-top:44px;padding:16px 0 0;display:flex;
+  justify-content:space-between}
+.swatch{display:flex;gap:0;margin-top:26px;border:1px solid var(--line)}
+.swatch div{flex:1;height:52px;display:grid;place-items:end center;padding-bottom:5px;
+  font-family:var(--mono);font-size:9px;color:var(--mute)}
+@media (max-width:900px){
+  :root{--pad:22px}
+  .headgrid{grid-template-columns:1fr}
+  .hcell{padding:14px 0}.hcell+.hcell{border-left:none;border-top:1px solid var(--line)}
+  .hcell:last-child{justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+
+<div id="sw">
+  <b>Paper</b>
+  <button data-v="a" class="on">A · 미세 그레인</button>
+  <button data-v="b">B · 레이드 결</button>
+  <button data-v="c">C · 섬유 반점</button>
+  <span id="swNote">균일하고 옅은 입자 — 가장 소극적</span>
+</div>
+
+<div id="shell">
+
+<div id="status" class="micro">Match · Level 02 · 1 band · Pink Noise</div>
+
+<div id="head"><div class="container headgrid">
+  <div class="hcell">
+    <div class="field"><span class="micro">Source</span><span class="sel">Pink Noise</span></div>
+    <span class="link">＋ 파일</span><span class="link">삭제</span>
+  </div>
+  <div class="hcell">
+    <nav style="display:flex;gap:8px">
+      <span class="pill on">Match</span><span class="pill">Ear</span><span class="pill">Stats</span>
+    </nav>
+  </div>
+  <div class="hcell">
+    <span class="micro">DSP Orfanidis</span>
+    <div style="width:84px;height:3px;background:var(--line2);position:relative">
+      <div style="position:absolute;left:0;top:0;height:3px;width:60%;background:var(--ink)"></div>
+      <div style="position:absolute;left:56%;top:-4px;width:11px;height:11px;border-radius:50%;background:var(--ink)"></div>
+    </div>
+    <div class="circ">◍</div><div class="circ on">▶</div>
+  </div>
+</div></div>
+
+<div id="wordmark">EQ TRAINER</div>
+
+<div id="wrap" class="container">
+
+  <div class="bar">
+    <div class="field"><span class="micro">Level</span><span class="sel">02 — 1밴드 · 보통</span></div>
+    <span class="link">NEW ROUND</span>
+    <div class="grow"></div>
+    <div class="field"><span class="micro">Monitor</span>
+      <div style="display:flex;gap:8px"><span class="pill sm on">A · Target</span><span class="pill sm">B · Mine</span></div>
+    </div>
+    <span class="pill solid">CHECK</span>
+  </div>
+
+  <svg class="graph" viewBox="0 0 1200 420" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="420" fill="var(--card)"/>
+    <rect x="0" y="0" width="199" height="420" fill="rgba(20,19,16,.04)"/>
+    <rect x="1080" y="0" width="120" height="420" fill="rgba(20,19,16,.04)"/>
+    <g stroke="#ece7db" stroke-width="1">
+      <path d="M79 0V404M199 0V404M318 0V404M439 0V404M559 0V404M680 0V404M800 0V404M920 0V404M1041 0V404M1161 0V404"/>
+    </g>
+    <g stroke="#f1eee5" stroke-width="1">
+      <path d="M0 83H1200M0 147H1200M0 273H1200M0 337H1200"/>
+    </g>
+    <path d="M0 210H1200" stroke="#d8d3c6" stroke-width="1"/>
+    <g stroke="#d8d3c6" stroke-width="1" stroke-dasharray="2 4">
+      <path d="M199 0V420M1080 0V420"/>
+    </g>
+    <path d="M0 210 L470 210 C600 209 690 203 782 147 C874 203 963 209 1093 210 L1200 210 Z"
+          fill="rgba(20,19,16,.055)"/>
+    <path d="M0 210 L470 210 C600 209 690 203 782 147 C874 203 963 209 1093 210 L1200 210"
+          fill="none" stroke="#141310" stroke-width="2.2"/>
+    <circle cx="782" cy="147" r="11" fill="#141310"/>
+    <text x="782" y="151" font-size="11" font-weight="700" fill="#fffefa"
+          text-anchor="middle" font-family="Poppins,sans-serif">1</text>
+    <g font-size="10" font-weight="500" font-family="Poppins,sans-serif" fill="#a6a194">
+      <text x="84" y="414">31.5</text><text x="204" y="414">63</text><text x="323" y="414">125</text>
+      <text x="444" y="414">250</text><text x="564" y="414">500</text><text x="685" y="414">1k</text>
+      <text x="805" y="414">2k</text><text x="925" y="414">4k</text><text x="1046" y="414">8k</text>
+      <text x="1166" y="414">16k</text>
+      <text x="6" y="79">+12</text><text x="6" y="143">+6</text><text x="6" y="206">0</text>
+      <text x="6" y="269">-6</text><text x="6" y="333">-12</text>
+    </g>
+  </svg>
+
+  <div id="nboxes">
+    <div class="bandrow">
+      <div class="bandtag">1</div>
+      <div class="nbox act"><div class="k">Freq</div><div class="v">1.80 kHz</div></div>
+      <div class="nbox act"><div class="k">Gain</div><div class="v">+6.0 dB</div></div>
+      <div class="nbox act"><div class="k">Q</div><div class="v">1.40</div></div>
+    </div>
+  </div>
+
+  <div class="hint">
+    노드 드래그 = 주파수·게인 · 숫자 위아래 드래그 = 값 조절 · 더블클릭 = 직접 입력<br>
+    <kbd>Shift</kbd> 미세 · <kbd>Alt</kbd>드래그 또는 <kbd>휠</kbd> = Q · <kbd>Ctrl</kbd> 옥타브 스냅 ·
+    <kbd>Space</kbd> 재생 · <kbd>X</kbd> A/B · <kbd>Enter</kbd> Check
+  </div>
+
+  <div class="swatch">
+    <div style="background:var(--paper)">paper #FFFBF3</div>
+    <div style="background:var(--card)">card</div>
+    <div style="background:var(--paper2)">recessed</div>
+    <div style="background:var(--line)">line</div>
+    <div style="background:var(--line2)">line2</div>
+    <div style="background:var(--ink);color:#fffbf3">ink</div>
+  </div>
+
+  <div id="folio">
+    <span class="micro">EQ Trainer — paper study (layout only, no audio)</span>
+    <span class="micro">63 Hz – 10 kHz</span>
+  </div>
+</div>
+</div>
+
+<script>
+const NOTE={
+  a:'균일하고 옅은 입자 — 가장 소극적',
+  b:'가로 결 + 세로 체인라인 — 인쇄용지 느낌, 방향성 있음',
+  c:'드문드문한 점 — 연속 노이즈 없음, 비도공지 느낌'
+};
+document.querySelectorAll('#sw button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('#sw button').forEach(x=>x.classList.toggle('on',x===b));
+    document.documentElement.dataset.paper=b.dataset.v;
+    swNote.textContent=NOTE[b.dataset.v];
+  };
+});
+addEventListener('keydown',e=>{
+  const i={a:0,b:1,c:2}, k=e.key.toLowerCase();
+  if(k in i) document.querySelectorAll('#sw button')[i[k]].click();
+});
+</script>
+</body>
+</html>

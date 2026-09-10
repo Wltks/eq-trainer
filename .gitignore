@@ -1,0 +1,11 @@
+# build artifact — regenerated from the sources in this repo
+eq-trainer-pwa.zip
+
+# scratch files from icon / design experiments
+_*.html
+_*.b64
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
