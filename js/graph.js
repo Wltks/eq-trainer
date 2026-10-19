@@ -177,9 +177,12 @@
     while (svg.firstChild) svg.firstChild.remove();
     svg._L = null;
     const [lo, hi] = G.range;
-    SK.torn(svg, R.x - 76, R.y - 66, R.w + 126, R.h + 140, { seed: 51, rot: -0.5, fill: '#fafaf7', pattern: ['sk-graph', 'sk-graph-major'], patOp: 0.7, sides: 'trb', amp: 3.6, shadowOp: 0.3 });
-    SK.tape(svg, R.x - 46, R.y - 56, 124, 34, -32, { seed: 52, color: '#e6e1d6', op: 0.62 });
-    SK.tape(svg, R.x + R.w + 30, R.y - 52, 116, 34, 28, { seed: 53, color: '#e6e1d6', op: 0.62 });
+    /* the sheet keeps its margins where there is room, and tucks in where there is not */
+    const narrow = R.w < 520, hw = host.offsetWidth;
+    const pL = Math.min(76, R.x + 14), pR = Math.min(50, hw - R.x - R.w + 14);
+    SK.torn(svg, R.x - pL, R.y - 66, R.w + pL + pR, R.h + (narrow ? 112 : 140), { seed: 51, rot: narrow ? -0.3 : -0.5, fill: '#fafaf7', pattern: ['sk-graph', 'sk-graph-major'], patOp: 0.7, sides: 'trb', amp: 3.6, shadowOp: 0.3 });
+    SK.tape(svg, R.x - pL + 30, R.y - 56, narrow ? 90 : 124, 30, -32, { seed: 52, color: '#e6e1d6', op: 0.62 });
+    SK.tape(svg, R.x + R.w + pR - 20, R.y - 52, narrow ? 84 : 116, 30, 28, { seed: 53, color: '#e6e1d6', op: 0.62 });
     /* frequencies outside the range are shaded off */
     const xl = fx(lo), xh = fx(hi);
     SK.hatch(svg, R.x, R.y, xl - R.x, R.h, { seed: 56, angle: 58, gap: 7, tool: 'soft' });
@@ -191,13 +194,14 @@
     SK.line(svg, R.x - 8, Y(0), R.x + R.w + 10, Y(0), { tool: 'pencil', seed: 61, bow: 0.002, grow: false, amp: 1.1 });
     SK.line(svg, R.x + 4, Y(10), R.x + R.w - 4, Y(10), { tool: 'soft', seed: 62, bow: 0.002, grow: false, amp: 1 });
     SK.line(svg, R.x - 4, R.y + R.h, R.x + R.w + 6, R.y + R.h + 1, { tool: 'pencil', seed: 63, bow: 0.002, grow: false, amp: 1.1 });
-    const lab = SK.layer(svg, 'pencil'), lt = { font: "'Reenie Beanie'", size: 26, color: '#34322d' };
+    const lab = SK.layer(svg, 'pencil'), lt = { font: "'Reenie Beanie'", size: narrow ? 21 : 26, color: '#34322d' };
     NB.text(lab, R.x - 16, Y(0) + 8, '0 dB', { ...lt, anchor: 'end' });
     NB.text(lab, R.x - 16, Y(10) + 8, '+10', { ...lt, anchor: 'end' });
     [63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000].forEach((f, i) => {
       const x = fx(f);
       SK.line(svg, x, R.y + R.h - 7, x + (i % 2 ? 0.8 : -0.6), R.y + R.h + 7, { tool: 'pencil', seed: 70 + i, grow: false });
-      NB.text(lab, x, R.y + R.h + 36, f >= 1000 ? f / 1000 + 'k' : String(f), lt);
+      /* on a narrow plot every other label, so they do not run together */
+      if (!narrow || i % 2 === 0) NB.text(lab, x, R.y + R.h + (narrow ? 30 : 36), f >= 1000 ? f / 1000 + 'k' : String(f), lt);
     });
   };
 
@@ -391,7 +395,12 @@
       cx.fillText(String(i + 1), x - NR - 10, y - NR + 4);
       if (act && !M.revealed) stamp(cx, arrowShape(dragging ? take : 0), x, y + NR + 16, P_RED, 0.9);
     });
-    if (G.hint && M.user.length && !M.revealed) {
+    if (G.hint && M.user.length && !M.revealed && R.w < 520) {   /* narrow: the note sits above the node */
+      const b = M.user[M.active] || M.user[0], x = fx(b.f), y = Y(10);
+      cx.save(); cx.font = `${Math.round(30 * G.koScale)}px ${G.koFont}, 'Nanum Pen Script', sans-serif`;
+      cx.textAlign = 'center'; cx.fillStyle = RED; cx.globalAlpha = 0.95;
+      cx.fillText('좌우로만 움직여요', Math.max(R.x + 80, Math.min(R.x + R.w - 80, x)), y - NR - 22); cx.restore();
+    } else if (G.hint && M.user.length && !M.revealed) {
       const b = M.user[M.active] || M.user[0], x = fx(b.f), y = Y(10), flip = x > R.x + R.w * 0.6;
       stamp(cx, hintShape(flip), x, y, P_RED, 0.9);
       cx.save(); cx.translate(x + (flip ? -150 : 150), y - 52); cx.rotate((-4 * Math.PI) / 180);

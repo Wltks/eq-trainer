@@ -133,9 +133,11 @@ function markTour() {
   if (view !== 'proc' || PREF.tourOff) return;
   const s = surf(page, 5, 'tour'); s.style.willChange = 'transform';
   const ink = SK.layer(s, 'pen');
-  const note = (txt, x, y, anchor, seed) => NB.text(ink, x, y, txt, { font: KOS, size: 34 * KS, color: '#c41a32', anchor, rot: -3 + (seed % 3) });
-  for (const [k, txt, dir] of TOUR) {
+  const phone = page.offsetWidth <= 700;
+  const note = (txt, x, y, anchor, seed) => NB.text(ink, x, y, phone ? txt.replace(/ · [a-z]+$/, '').replace(' · x로', ',') : txt, { font: KOS, size: (phone ? 28 : 34) * KS, color: '#c41a32', anchor, rot: -3 + (seed % 3) });
+  for (const [k, txt, d0] of TOUR) {
     if (PREF.tour[k]) continue;
+    const dir = phone ? 'up' : d0;
     const id = { src: 'srcName', play: 'play', mon: 'mon', check: 'check' }[k], b = rectOf(id), seed = 300 + k.length * 7;
     if (!b.w) continue;
     if (dir === 'left') {   /* to the right of it, pointing back */
@@ -144,7 +146,7 @@ function markTour() {
       SK.arrow(s, x - 14, y - 12, b.x + b.w + 46, b.y + b.h * 0.45, { tool: 'pen', seed, bend: 0.2, head: 10 });
     } else {                /* under it, pointing up */
       const cx = b.x + b.w / 2, y = b.y + b.h + 74;
-      const x = k === 'check' ? b.x + b.w : k === 'play' ? b.x + b.w + 60 : b.x + 10;
+      const x = k === 'check' ? b.x + b.w : k === 'play' ? b.x + b.w + (phone ? 20 : 60) : b.x + 10;
       note(txt, x, y, k === 'check' ? 'end' : 'start', seed);
       SK.arrow(s, k === 'check' ? cx + 20 : x + 14, y - 34, cx + (k === 'play' ? 12 : 0), b.y + b.h + 10, { tool: 'pen', seed, bend: k === 'check' ? 0.2 : -0.2, head: 10 });
     }
@@ -176,7 +178,7 @@ function placeResult() {
   if (!resultOpen) return;
   const el = $('result'), g = boxOf('gcol'), X0 = mx(), X1 = page.offsetWidth - mx();
   el.style.left = (X0 + (X1 - X0 - el.offsetWidth) / 2) + 'px';
-  el.style.top = (g.y + GRAPH.yOf(0) + 56) + 'px';
+  el.style.top = (g.y + (page.offsetWidth <= 700 ? GRAPH.plotRect().y + GRAPH.plotRect().h + 70 : GRAPH.yOf(0) + 56)) + 'px';
   /* its own paper */
   el.querySelectorAll(':scope > svg').forEach((s) => s.remove());
   const s = SK.el('svg', { width: el.offsetWidth, height: el.offsetHeight }, null); el.prepend(s);
@@ -597,22 +599,24 @@ function drawStats(under, over) {
   /* ── accuracy per octave band, hatched pencil bars ── */
   const c = boxOf('chart'), rows = bandRows(), n = rows.length, slot = c.w / n, bw = slot * 0.44, b0 = c.y + c.h;
   const Yp = (p) => b0 - (p / 100) * c.h;
+  /* a narrow chart (a phone) gets smaller figures and no per-band counts */
+  const sm = slot < 60, fs = (n) => Math.round(n * (sm ? 0.6 : 1));
   SK.line(over, c.x - 30, b0, c.x + c.w + 10, b0 + 1, { tool: 'pencil', seed: 101, bow: 0.002, grow: false });
   for (const p of [50, 100]) {
     for (let x = c.x - 10; x < c.x + c.w; x += 16) SK.line(over, x, Yp(p), x + 7, Yp(p) + 0.3, { tool: 'soft', seed: p * 7 + x, grow: false, amp: 0.1 });
-    NB.text(lab, c.x - 26, Yp(p) + 8, p + '%', { font: "'Reenie Beanie'", size: 24, color: '#7b766d', anchor: 'end' });
+    NB.text(lab, c.x - (sm ? 8 : 26), Yp(p) + 8, p + '%', { font: "'Reenie Beanie'", size: fs(24), color: '#7b766d', anchor: 'end' });
   }
   SK.line(over, c.x - 10, Yp(GOOD), c.x + c.w, Yp(GOOD) - 1, { tool: 'pen', seed: 102, bow: 0.002, grow: false, w: 1.4, op: 0.75 });
-  NB.text(labP, c.x + c.w + 6, Yp(GOOD) - 16, '목표 80%', { font: KOS, size: 32 * KS, color: '#c41a32', anchor: 'end', rot: -2 });
+  NB.text(labP, c.x + c.w + 6, Yp(GOOD) - 16, '목표 80%', { font: KOS, size: fs(32) * KS, color: '#c41a32', anchor: 'end', rot: -2 });
   rows.forEach((r, i) => {
     const cx = c.x + slot * (i + 0.5), x = cx - bw / 2, top = Yp(r.p);
-    NB.text(lab, cx, b0 + 46, r.f >= 1000 ? r.f / 1000 + 'k' : String(r.f), { font: "'Reenie Beanie'", size: 34, color: '#34322d' });
-    NB.text(lab, cx, b0 + 80, r.n + '문제', { font: KOS, size: 26 * KS, color: '#938c80' });
+    NB.text(lab, cx, b0 + (sm ? 30 : 46), r.f >= 1000 ? r.f / 1000 + 'k' : String(r.f), { font: "'Reenie Beanie'", size: fs(34), color: '#34322d' });
+    if (!sm) NB.text(lab, cx, b0 + 80, r.n + '문제', { font: KOS, size: 26 * KS, color: '#938c80' });
     if (r.n < 1) {   /* nothing answered here yet: an empty dashed box */
       const hb = Yp(18), seg = [[[x, b0], [x, hb]], [[x, hb], [x + bw, hb]], [[x + bw, hb], [x + bw, b0]]];
       for (const [a, b2] of seg) for (let t = 0; t < 1; t += 0.14)
         SK.line(over, a[0] + (b2[0] - a[0]) * t, a[1] + (b2[1] - a[1]) * t, a[0] + (b2[0] - a[0]) * (t + 0.07), a[1] + (b2[1] - a[1]) * (t + 0.07), { tool: 'soft', seed: i * 50 + t * 100, grow: false, amp: 0.1 });
-      NB.text(lab, cx, hb - 16, '기록 없음', { font: KOS, size: 26 * KS, color: '#938c80' });
+      NB.text(lab, cx, hb - (sm ? 8 : 16), sm ? '—' : '기록 없음', { font: KOS, size: fs(26) * KS, color: '#938c80' });
       return;
     }
     const weak = r.p < WEAK, good = r.p >= GOOD, tool = weak ? 'pen' : good ? 'pencil' : 'soft';
@@ -620,7 +624,7 @@ function drawStats(under, over) {
       SK.stroke(over, [[x, b0], [x - 1, top], [x + bw, top + 1], [x + bw + 1, b0]], { tool, seed: 200 + i, grow: false, amp: 0.5, bow: 0.002 });
       SK.hatch(over, x + 2, top + 3, bw - 4, b0 - top - 4, { seed: 300 + i, angle: 62, gap: good ? 4.2 : weak ? 5.5 : 6.5, tool, ragged: 2 });
     }
-    NB.text(weak ? labP : lab, cx, top - 18, r.p + '%', { font: "'Reenie Beanie'", size: 42, color: weak ? '#c41a32' : '#34322d' });
+    NB.text(weak ? labP : lab, cx, top - (sm ? 10 : 18), r.p + (sm ? '' : '%'), { font: "'Reenie Beanie'", size: fs(42), color: weak ? '#c41a32' : '#34322d' });
   });
   [['lg1', 'pencil', 4.2], ['lg2', 'soft', 6.5], ['lg3', 'pen', 5.5]].forEach(([id, tool, gap], k) => {
     const l = rectOf(id);
