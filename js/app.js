@@ -79,6 +79,7 @@ function check() {
   });
   const score = Math.round(rows.reduce((s, r) => s + r.sc, 0) / rows.length);
   const ok = rows.every((r) => r.eo < 0.5);
+  tourDone('check');
   ST.total++; if (ok) { ST.ok++; ST.streak++; ST.best = Math.max(ST.best, ST.streak); } else ST.streak = 0;
   const d = today(); d.n++; if (ok) d.ok++;
   ST.log.push({ lv: PREF.lv, s: score, d: rows.map((r) => Math.round(r.t) + '→' + Math.round(r.u)).join(', '), t: Date.now() });
@@ -103,6 +104,53 @@ function moveActive(oct) {
   setBands(B, M.user); updateReadout(); GRAPH.dirty = true; dismissHint();
 }
 function dismissHint() { if (!PREF.hinted) { PREF.hinted = true; savePrefs(); GRAPH.hint = false; GRAPH.dirty = true; } }
+
+/* ═══════════ first-visit notes ═══════════
+   Red pen notes in the margins, like the one on the graph, one per step:
+   pick a sound → play → compare A/B → move the node (the graph's own note) →
+   CHECK. Each note goes away once that step has been done; the footer can
+   bring them all back. */
+PREF.tour = PREF.tour || {};
+const TOUR = [
+  ['src', '먼저 들을 소리를 골라요', 'left'],
+  ['play', '재생해서 들어 봐요 · space', 'up'],
+  ['mon', 'A는 문제, B는 내 EQ · x로 번갈아 들어요', 'up'],
+  ['check', '들리는 곳에 놓았으면 쾅! · enter', 'up'],
+];
+const touring = () => !PREF.tourOff && (TOUR.some(([k]) => !PREF.tour[k]) || !PREF.hinted);
+function tourDone(k) {
+  if (PREF.tour[k]) return;
+  PREF.tour[k] = true; savePrefs();
+  if (!touring()) redraw(); else markTour();   /* the last note going also gives its room back */
+}
+function tourReset(on) {
+  PREF.tourOff = !on; if (on) { PREF.tour = {}; PREF.hinted = false; }
+  savePrefs(); GRAPH.hint = on && !PREF.hinted; GRAPH.dirty = true; redraw();
+}
+function markTour() {
+  page.querySelectorAll('svg.tour').forEach((s) => s.remove());
+  $('tourBtn').textContent = touring() ? '설명 끄기' : '처음 설명 다시 보기';
+  if (view !== 'proc' || PREF.tourOff) return;
+  const s = surf(page, 5, 'tour'); s.style.willChange = 'transform';
+  const ink = SK.layer(s, 'pen');
+  const note = (txt, x, y, anchor, seed) => NB.text(ink, x, y, txt, { font: KOS, size: 34 * KS, color: '#c41a32', anchor, rot: -3 + (seed % 3) });
+  for (const [k, txt, dir] of TOUR) {
+    if (PREF.tour[k]) continue;
+    const id = { src: 'srcName', play: 'play', mon: 'mon', check: 'check' }[k], b = rectOf(id), seed = 300 + k.length * 7;
+    if (!b.w) continue;
+    if (dir === 'left') {   /* to the right of it, pointing back */
+      const x = b.x + b.w + 130, y = b.y + b.h * 0.7;
+      note(txt, x, y, 'start', seed);
+      SK.arrow(s, x - 14, y - 12, b.x + b.w + 46, b.y + b.h * 0.45, { tool: 'pen', seed, bend: 0.2, head: 10 });
+    } else {                /* under it, pointing up */
+      const cx = b.x + b.w / 2, y = b.y + b.h + 74;
+      const x = k === 'check' ? b.x + b.w : k === 'play' ? b.x + b.w + 60 : b.x + 10;
+      note(txt, x, y, k === 'check' ? 'end' : 'start', seed);
+      SK.arrow(s, k === 'check' ? cx + 20 : x + 14, y - 34, cx + (k === 'play' ? 12 : 0), b.y + b.h + 10, { tool: 'pen', seed, bend: k === 'check' ? 0.2 : -0.2, head: 10 });
+    }
+  }
+}
+$('tourBtn').onclick = () => tourReset(!touring());
 
 /* ═══════════ the answer note ═══════════ */
 const VERDICT = (s) => (s >= 92 ? '정확해요!' : s >= 78 ? '거의 정확해요' : s >= 50 ? '근처예요' : '다시 들어볼까요?');
@@ -169,7 +217,7 @@ const todayText = () => { const d = today(); return d.n ? `${d.n}문제 · ${d.o
 
 /* ═══════════ engine hooks ═══════════ */
 const UI = {
-  play() { if (view === 'proc') markPlay(); },
+  play() { if (view === 'proc') markPlay(); if (playing || live) tourDone('play'); },
   live(on, suppressed) {
     $('vProc').classList.toggle('live', !!on);
     $('liveWarn').hidden = !on || !!suppressed;
@@ -178,7 +226,11 @@ const UI = {
   source() {
     $('srcName').textContent = srcId ? sourceName(srcId) : '선택하세요';
     $('srcName').classList.toggle('unset', !srcId);
+    /* noise has no timeline: only a play button; seeking is for files */
+    const file = !!srcId && !srcId.startsWith('#');
+    if ($('vProc').classList.contains('file') !== file) { $('vProc').classList.toggle('file', file); if (view === 'proc') { buildTracks(); markSkips(); markTour(); } }
     paintTransport(true); if (view === 'proc') markSource();
+    if (srcId) tourDone('src');
   },
   side() { if (view === 'proc') markMonitor(); },
 };
@@ -464,8 +516,8 @@ function needSource() {
 }
 $('play').onclick = () => { if (!needSource()) togglePlay(); };
 $('anaT').onclick = () => { PREF.ana = !PREF.ana; GRAPH.anaOn = PREF.ana; savePrefs(); markAna(); GRAPH.dirty = true; };
-$('mA').onclick = () => { setSide('A'); ensurePlaying(); };
-$('mB').onclick = () => { setSide('B'); ensurePlaying(); };
+$('mA').onclick = () => { setSide('A'); ensurePlaying(); tourDone('mon'); };
+$('mB').onclick = () => { setSide('B'); ensurePlaying(); tourDone('mon'); };
 $('check').onclick = () => check();
 document.querySelectorAll('[data-lv]').forEach((b) => (b.onclick = () => {
   const n = +b.dataset.lv; if (n === PREF.lv) return;
@@ -638,9 +690,11 @@ function placePolaroid() {
   p.style.right = 'auto'; p.style.left = left + 'px';
 }
 function redraw() {
+  /* notes need room between the control rows: set before anything is measured */
+  $('vProc').classList.toggle('touring', touring());
   placePolaroid();
   if (view === 'proc') { layoutGraph(); buildTracks(); drawRuler(); }
-  drawPage(); drawMarks();
+  drawPage(); drawMarks(); markTour();
   placeResult();
 }
 
@@ -655,7 +709,7 @@ addEventListener('keydown', (e) => {
   }
   if (view !== 'proc') return;
   if (e.code === 'Space') { e.preventDefault(); if (!needSource()) togglePlay(); }
-  else if (e.key === 'x' || e.key === 'X') { setSide(side === 'A' ? 'B' : 'A'); ensurePlaying(); }
+  else if (e.key === 'x' || e.key === 'X') { setSide(side === 'A' ? 'B' : 'A'); ensurePlaying(); tourDone('mon'); }
   else if (e.key === 'Enter') { e.preventDefault(); check(); }
   else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
     e.preventDefault();
@@ -694,7 +748,9 @@ PENCIL.apply('red', '.click,.click *,.g-live.hot');
   rangeVals();
   setVolume(PREF.vol); $('volVal').textContent = PREF.vol;
   GRAPH.init($('gcol'));
-  GRAPH.model = M; GRAPH.anaOn = PREF.ana; GRAPH.hint = !PREF.hinted;
+  /* people who have already played do not need the first-visit notes */
+  if (PREF.tourOff === undefined && ST.total > 0) { PREF.tourOff = true; savePrefs(); }
+  GRAPH.model = M; GRAPH.anaOn = PREF.ana; GRAPH.hint = !PREF.hinted && !PREF.tourOff;
   GRAPH.koFont = "'ROH HOE-CHAN'"; GRAPH.koScale = KS;
   GRAPH.ana = () => (analyser ? { node: analyser, data: anaData } : null);
   GRAPH.onGrab = (i) => { M.active = i; updateReadout(); dismissHint(); };

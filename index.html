@@ -132,6 +132,7 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 #liveMsg p{margin:12px 0 0;font:15px/1.8 var(--body);color:var(--soft);white-space:nowrap}
 #liveMsg p.warn{color:var(--red)}
 #vProc.live #tp{display:none}
+#vProc:not(.file) .tb,#vProc:not(.file) .scrub{display:none}
 #vProc:not(.live) #liveMsg{display:none}
 .opts{display:flex;gap:36px;margin-top:16px;align-items:baseline}
 .opt{font:calc(clamp(32px,2.1cqw,40px) * var(--ks))/1 var(--ko);white-space:nowrap}
@@ -199,6 +200,10 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 /* ── footer ── */
 #foot{display:flex;justify-content:space-between;align-items:baseline;margin-top:clamp(270px,17.6cqw,340px);padding:58px 0 96px}
 #foot .go{font:38px/1 var(--hand)}
+#tourBtn{font:14px var(--body);color:var(--label);margin-right:56px}
+/* room for the first-visit notes between the control rows */
+#vProc.touring #ctrl{row-gap:120px}
+#vProc.touring #set{padding-top:clamp(340px,22cqw,420px)}
 /* Processing: twice the room between the settings and the closing rule */
 #vStats[hidden] ~ #foot{margin-top:clamp(540px,35.2cqw,680px)}
 
@@ -409,7 +414,7 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
   <footer id="foot">
     <span class="byline"><span class="lbl">my personal eq workbook</span><span class="lbl">by. zysankym</span></span>
     <span class="lbl" id="folio">— 14 —</span>
-    <span class="go graphite click" id="goView">Stats 보기 →</span>
+    <span><span class="click" id="tourBtn">설명 끄기</span><span class="go graphite click" id="goView">Stats 보기 →</span></span>
   </footer>
 
   <div id="result" hidden>
@@ -447,12 +452,12 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 <div id="toast" hidden></div>
 <div id="drop" hidden><span>여기에 오디오 파일을 놓으세요</span></div>
 
-<script src="js/sketch.js?v=1792390427"></script>
-<script src="js/nb.js?v=1792390427"></script>
-<script src="js/cursor.js?v=1792390427"></script>
-<script src="js/engine.js?v=1792390427"></script>
-<script src="js/graph.js?v=1792390427"></script>
-<script src="js/app.js?v=1792390427"></script>
-<script src="js/share.js?v=1792390427"></script>
+<script src="js/sketch.js?v=1792390908"></script>
+<script src="js/nb.js?v=1792390908"></script>
+<script src="js/cursor.js?v=1792390908"></script>
+<script src="js/engine.js?v=1792390908"></script>
+<script src="js/graph.js?v=1792390908"></script>
+<script src="js/app.js?v=1792390908"></script>
+<script src="js/share.js?v=1792390908"></script>
 </body>
 </html>
