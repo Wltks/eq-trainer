@@ -1,10 +1,11 @@
-/* EQ Trainer — service worker
+/* My Personal EQ Workbook — service worker
  *
  * ⚠ BUMP THIS STRING EVERY TIME YOU CHANGE ANY FILE.
  *   The cache name is the only thing that tells browsers a new version exists.
  *   Forget it and your update reaches nobody: they keep the old cached copy.
  */
-const CACHE = 'eqtrainer-v1';
+const CACHE = 'eqworkbook-v8';
+const FONTS = 'eqworkbook-fonts';
 
 const ASSETS = [
   './',
@@ -12,10 +13,14 @@ const ASSETS = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './fonts/poppins-400.woff2',
-  './fonts/poppins-500.woff2',
-  './fonts/poppins-600.woff2',
-  './fonts/poppins-700.woff2'
+  './fonts/roh-hangul.woff',
+  './js/sketch.js',
+  './js/nb.js',
+  './js/cursor.js',
+  './js/engine.js',
+  './js/graph.js',
+  './js/app.js',
+  './js/share.js'
 ];
 
 self.addEventListener('install', e => {
@@ -30,7 +35,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== FONTS).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -40,11 +45,20 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
-  if (url.origin !== location.origin) return;   // never touch cross-origin
+  /* the hand-lettering comes from Google Fonts: keep a copy so the notebook
+     still looks like itself offline */
+  if (url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com') {
+    e.respondWith(caches.open(FONTS).then(c => c.match(req).then(hit => hit ||
+      fetch(req).then(res => { if (res && (res.ok || res.type === 'opaque')) c.put(req, res.clone()); return res; }))));
+    return;
+  }
+  if (url.origin !== location.origin) return;   // never touch other cross-origin
 
-  /* Network-first for the page itself so a redeploy is picked up as soon as
-     the user is online; cache-first for the static assets. */
-  if (req.mode === 'navigate' || url.pathname.endsWith('.html')) {
+  /* Network-first for the page and its code so an edit is picked up on the
+     next load; cache-first only for fonts and icons. */
+  /* everything of our own is network-first: an edit shows on the next load,
+     the cache is only for working offline */
+  if (true) {
     e.respondWith(
       fetch(req)
         .then(res => {

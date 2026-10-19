@@ -9,3 +9,9 @@ _*.b64
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# local-only: design mockups, screenshots, the full font file, the launcher
+design/
+mockups/
+fonts/ROEHOE-CHAN.otf
+EQ Trainer.bat

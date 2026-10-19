@@ -1,16 +1,20 @@
 {
-  "name": "EQ Trainer",
-  "short_name": "EQ Trainer",
-  "description": "Ear training for mix engineers — listening and processing drills with an analog-matched EQ.",
+  "name": "My Personal EQ Workbook",
+  "short_name": "EQ Workbook",
+  "description": "손그림 노트처럼 생긴 EQ 귀 훈련 — 어디가 솟았는지 듣고 노드를 옮기세요.",
   "id": "/eq-trainer/",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#fffbf3",
-  "theme_color": "#fffbf3",
+  "background_color": "#f4f2ee",
+  "theme_color": "#f4f2ee",
   "lang": "ko",
-  "categories": ["education", "music", "utilities"],
+  "categories": [
+    "education",
+    "music",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "icon-192.png",

@@ -3,2146 +3,456 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EQ Trainer</title>
+<title>My Personal EQ Workbook</title>
+<meta name="description" content="손그림 노트처럼 생긴 EQ 귀 훈련. 어디가 솟았는지 듣고 노드를 그 자리로 옮기세요.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="My Personal EQ Workbook">
+<meta property="og:description" content="어디가 솟았는지 듣고, 노드를 그 자리로 옮기세요 — 손그림 노트 EQ 귀 훈련">
+<meta property="og:url" content="https://wltks.github.io/eq-trainer/">
+<meta property="og:image" content="https://wltks.github.io/eq-trainer/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#fffbf3">
+<meta name="theme-color" content="#f4f2ee">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Reenie+Beanie&family=Nothing+You+Could+Do&family=Nanum+Pen+Script&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic+Coding&family=Special+Elite&display=block" rel="stylesheet">
 <style>
-/* Poppins is bundled (latin subset, 4 weights ≈ 31 KB) rather than pulled from
-   a CDN, so the installed app renders identically with no network. */
-@font-face{font-family:Poppins;font-style:normal;font-weight:400;font-display:swap;
-  src:url(fonts/poppins-400.woff2) format('woff2')}
-@font-face{font-family:Poppins;font-style:normal;font-weight:500;font-display:swap;
-  src:url(fonts/poppins-500.woff2) format('woff2')}
-@font-face{font-family:Poppins;font-style:normal;font-weight:600;font-display:swap;
-  src:url(fonts/poppins-600.woff2) format('woff2')}
-@font-face{font-family:Poppins;font-style:normal;font-weight:700;font-display:swap;
-  src:url(fonts/poppins-700.woff2) format('woff2')}
+/* Korean handwriting: hangul only — its Latin and digits read oddly, those
+   fall through to the pen script */
+@font-face{font-family:'ROH HOE-CHAN';src:url('fonts/roh-hangul.woff') format('woff');
+  font-display:block;unicode-range:U+1100-11FF,U+3130-318F,U+AC00-D7A3}
 :root{
-  --paper:#fffbf3;      /* ivory ground — near white */
-  --paper2:#f8f3e8;     /* recessed */
-  --card:#fffefa;       /* raised: canvas, sheet */
-  --ink:#141310;
-  --ink2:#45413a;
-  --line:#ebe5d7;
-  --line2:#d3cdbd;
-  --mute:#948e80;
-  --red:#b8382c;
-  --font:"Poppins","Segoe UI",system-ui,-apple-system,sans-serif;
-  --mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
-  --ease:cubic-bezier(.2,.8,.2,1);
-  --cw:1280px;
-  --pad:40px;
+  --paper:#f4f2ee; --graphite:#34322d; --soft:#7b766d; --red:#c41a32; --label:#938c80;
+  /* every Latin face names its Korean partner: a bare 'cursive' fallback lands
+     on Gungsuh on Windows */
+  --ko:'ROH HOE-CHAN','Nanum Pen Script',sans-serif; --ks:.78;
+  --hand:'Reenie Beanie',var(--ko); --pen:'Nothing You Could Do',var(--ko);
+  --type:'Special Elite','Nanum Gothic Coding',monospace; --body:'Nanum Myeongjo',serif;
+  --mx:clamp(28px,7.2cqw,160px);
+  /* the page is a column no wider than this; on a wider screen the paper
+     simply shows either side, and everything inside keeps its proportions */
+  --col:1440px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%}
-body{background:var(--paper);color:var(--ink);font-family:var(--font);font-size:14px;
-  line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-button,select,input{font-family:inherit;font-size:inherit;color:inherit}
+/* pale ivory paper: a fine tooth and a slow cockle, as tiles rasterised once */
+html,body{margin:0;background-color:var(--paper);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='t' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='2' seed='21' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32  0 0 0 0 .3  0 0 0 0 .28  0 0 0 .14 -.045'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url%28%23t%29'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='1200'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0025 0.004' numOctaves='3' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42  0 0 0 0 .4  0 0 0 0 .38  0 0 0 .11 -.035'/%3E%3C/filter%3E%3Crect width='1200' height='1200' filter='url%28%23c%29'/%3E%3C/svg%3E");
+  background-size:300px 300px,1200px 1200px}
+body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+/* sizes below are in cqw — hundredths of this column, not of the window */
+#zoom{position:relative;max-width:var(--col);margin:0 auto;container-type:inline-size}
+#page{position:relative;padding:0 var(--mx);overflow:hidden;min-height:100vh}
+#page > *{position:relative;z-index:2}
+#page > svg.pg{will-change:transform}
+[hidden]{display:none !important}
+.graphite{color:var(--graphite);filter:url(#sk-pencil)}
+.pen{color:var(--red);filter:url(#sk-ink)}
+.lbl{font:12px var(--type);letter-spacing:.26em;text-transform:uppercase;color:var(--label)}
+.click{user-select:none}
+.click:hover{opacity:.66}
+.ko{font-family:var(--ko)}
 
-/* ── paper grain ──
-   Sits ABOVE the content (z-index 60) so the texture reads across the whole
-   sheet, not just the exposed background. A single tight grain, kept faint —
-   the wide mottle layer was what made the paper look crumpled.
-   Variant B (laid): fine horizontal ribbing + faint vertical chain lines.
-   Line edges are feathered — hard 1px rules moiré at fractional pixel ratios. */
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:60;
-  mix-blend-mode:multiply;
-  background-image:
-    repeating-linear-gradient(0deg,  rgba(20,19,16,.030) 0px, rgba(20,19,16,0) 1.6px, rgba(20,19,16,0) 5px),
-    repeating-linear-gradient(90deg, rgba(20,19,16,.020) 0px, rgba(20,19,16,0) 1.4px, rgba(20,19,16,0) 28px),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='0.2'/%3E%3C/svg%3E");
-  background-size:auto,auto,140px 140px;
-}
+/* ── running head + tabs ── */
+#top{display:flex;justify-content:space-between;align-items:flex-start;padding-top:46px}
+.byline{display:flex;flex-direction:column;gap:8px}
+#top nav{display:flex;gap:60px;font:40px/1 var(--hand)}
+#top nav .off{color:#8a857b}
 
-.container{max-width:var(--cw);margin:0 auto;padding:0 var(--pad);width:100%}
+/* ── masthead: "my personal" typed on a strip of tape over the title ── */
+/* the title stands alone, with a great deal of paper round it */
+#mast{text-align:center;padding:clamp(300px,24cqw,420px) 0 clamp(420px,32cqw,560px)}
+#title{--tf:clamp(110px,12.6cqw,250px);position:relative;font:400 var(--tf)/.7 var(--hand);margin:0;
+  letter-spacing:-.01em;white-space:nowrap;display:inline-block}
+#tMy{position:absolute;white-space:nowrap;z-index:3;font:400 calc(var(--tf) * .082)/1 var(--type);
+  letter-spacing:.34em;text-transform:uppercase;color:var(--graphite);left:calc(var(--tf) * -.12);
+  top:calc(var(--tf) * -.34);padding:13px 28px 11px 32px;transform:rotate(-4deg)}
+#sub{font:calc(clamp(30px,2.3cqw,44px) * var(--ks))/1.2 var(--ko);margin:clamp(44px,3.2cqw,60px) 0 0}
+#polaroid{position:absolute;right:0;top:clamp(300px,23cqw,400px);width:236px;height:288px}
+#polaroid .cap{position:absolute;left:0;right:0;bottom:22px;text-align:center;
+  font:calc(28px * var(--ks))/1 var(--ko);transform:rotate(4deg)}
 
-/* ── primitives ── */
-.micro{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--mute);font-weight:500}
-#dspTag{white-space:nowrap}
-.selw:has(#srcSel){min-width:132px}
-.pill{background:transparent;border:1px solid var(--ink);border-radius:999px;padding:11px 25px;
-  cursor:pointer;font-size:14px;transition:background .18s var(--ease),color .18s var(--ease);white-space:nowrap}
-.pill:hover{background:rgba(22,19,14,.06)}
-.pill.on{background:var(--ink);color:var(--card)}
-.pill.sm{padding:9px 19px;font-size:13.5px}
-.pill.solid{background:var(--ink);color:var(--card);font-weight:600;letter-spacing:.03em}
-.pill.solid:hover{opacity:.82;background:var(--ink)}
-.pill.caps{font-size:12.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
-  padding:12px 24px}
-.pill:disabled{opacity:.28;cursor:not-allowed}
-.circ{width:42px;height:42px;border-radius:50%;border:1px solid var(--ink);background:transparent;
-  cursor:pointer;display:grid;place-items:center;padding:0;flex:0 0 auto;font-size:14px;
-  transition:background .18s var(--ease),color .18s var(--ease)}
-.circ:hover{background:rgba(22,19,14,.06)}
-.circ.on{background:var(--ink);color:var(--card)}
-/* chevron drawn as a stroked SVG — the old CSS-gradient triangle rendered as a
-   blocky wedge and was the cheapest-looking thing on the page */
-select{background:transparent;border:none;border-bottom:1px solid var(--line2);border-radius:0;
-  padding:7px 26px 7px 1px;cursor:pointer;font-weight:500;font-size:15px;appearance:none;
-  transition:border-color .18s var(--ease);
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23948e80' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.9 6 6.4 11 1.9'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 2px center;background-size:11px 7px}
-select:focus{outline:none}
+/* ── the ruled band under the title ── */
+.strip{display:grid;grid-template-columns:minmax(280px,20%) 1fr minmax(340px,24%);align-items:center;padding:74px 0 80px}
+.cell{padding:0 clamp(36px,3.6cqw,72px);min-width:0}
+.cell.c1{padding-left:0}.cell.c3{padding-right:0}
+.h2{font:400 clamp(48px,3.4cqw,64px)/1 var(--pen);margin:0;display:inline-block;transform:rotate(-3deg);white-space:nowrap}
+.srccell{position:relative}
+.srcrow{position:relative;display:flex;align-items:baseline;gap:36px;margin-top:16px;white-space:nowrap;min-width:0}
+#srcName{font:clamp(34px,2.5cqw,48px)/1 var(--hand);max-width:28cqw;overflow:hidden;text-overflow:ellipsis}
+#caret{display:inline-block;width:20px;height:18px;margin-left:-26px;flex:none}
+/* the placeholder keeps the pen script's line metrics (the hangul font sits low) */
+#srcName.unset{color:var(--label);font-size:calc(clamp(34px,2.5cqw,48px) * var(--ks))}
+.aside{font:calc(clamp(28px,1.8cqw,34px) * var(--ks))/1 var(--ko)}
+.todayrow{display:flex;align-items:center;gap:24px;margin-top:16px;white-space:nowrap}
+.tally{position:relative;display:inline-block;width:0;height:32px;flex:none}
 
-/* ── custom dropdown ──
-   The native popup is drawn by the OS and lands on the page as a grey system
-   listbox — the one element that could not be styled to match. The <select>
-   stays in the DOM (all the logic still reads .value and listens for change)
-   but is visually replaced by a paper panel. */
-.selw.cs{display:block;width:100%}
-.cs>select{position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;pointer-events:none}
-.cs-trigger{display:flex;align-items:center;gap:14px;width:100%;text-align:left;
-  background:transparent;border:none;border-bottom:1px solid var(--line2);border-radius:0;
-  padding:7px 2px;font-size:15px;font-weight:500;color:var(--ink);cursor:pointer;
-  transition:border-color .18s var(--ease)}
-.cs-trigger:focus{outline:none}
-.cs.open .cs-trigger,.cs-trigger:hover{border-bottom-color:var(--ink)}
-.cs-val{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cs-chev{flex:0 0 auto;transition:transform .22s var(--ease)}
-.cs.open .cs-chev{transform:rotate(180deg)}
-.cs.open .pen{clip-path:inset(0 0 0 0)}
+/* source menu: a slip of paper under the name */
+#srcMenu{position:absolute;left:clamp(10px,2.6cqw,52px);top:calc(100% + 18px);z-index:30;min-width:360px;
+  padding:26px 34px 22px;display:flex;flex-direction:column}
+#page > main.menu-open{z-index:5}
+#srcMenu svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:0}
+#srcMenu .mi{position:relative;z-index:1;display:flex;align-items:baseline;gap:18px;padding:9px 0;
+  font:30px/1 var(--hand);white-space:nowrap}
+#srcMenu .mi .n{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+#srcMenu .mi .hint,#srcMenu .mi .del{margin-left:auto;padding-left:28px}
+#srcMenu .mi .hint{font:13px var(--body);color:var(--label)}
+#srcMenu .mi .del{font:13px var(--body);color:var(--label)}
+#srcMenu .sep{height:14px}
 
-.cs-menu{position:absolute;left:-16px;top:calc(100% + 14px);z-index:40;
-  min-width:calc(100% + 32px);background:var(--card);border:1px solid var(--ink);
-  box-shadow:0 22px 46px -24px rgba(70,64,48,.5);padding:5px 0;
-  opacity:0;transform:translateY(-7px);pointer-events:none;
-  transition:opacity .15s var(--ease),transform .19s var(--ease)}
-.cs-menu.right{left:auto;right:-16px}
-.cs.open .cs-menu{opacity:1;transform:none;pointer-events:auto}
-.cs-opt{display:flex;align-items:baseline;gap:22px;width:100%;position:relative;
-  background:transparent;border:none;text-align:left;cursor:pointer;color:var(--ink);
-  padding:12px 22px 12px 36px;font-size:14px;white-space:nowrap}
-.cs-opt+.cs-opt{border-top:1px solid var(--line)}
-.cs-opt:hover,.cs-opt.cursor{background:var(--paper2)}
-.cs-opt.sel{font-weight:600}
-.cs-opt.sel::before{content:'';position:absolute;left:19px;top:calc(50% - 3px);
-  width:6px;height:6px;border-radius:50%;background:var(--ink)}
-.cs-opt .o1{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
-.cs-opt .o2{flex:0 0 auto;font-family:var(--mono);font-size:12.5px;color:var(--mute);
-  letter-spacing:-.02em}
-.cs-opt.sel .o2{color:var(--ink2)}
-@media (prefers-reduced-motion:reduce){ .cs-menu,.cs-chev{transition:none} }
+/* ── the exercise ── */
+#ex{padding-top:clamp(240px,16.2cqw,310px)}
+.askRow{display:grid;grid-template-columns:1fr auto;align-items:end;position:relative;z-index:4}
+.ask{font:calc(clamp(96px,7.6cqw,150px) * var(--ks))/.9 var(--ko);margin:0 0 40px clamp(24px,2cqw,40px);
+  width:max-content;transform:rotate(-2.5deg);transform-origin:left bottom}
+#readout{text-align:right;margin:0 clamp(24px,2.4cqw,48px) 34px 0}
+#readout .fl{display:flex;align-items:baseline;justify-content:flex-end;gap:22px}
+.freq{font:400 clamp(80px,5.8cqw,112px)/.9 var(--pen);white-space:nowrap;min-width:3.2em;text-align:right}
+.freq small{font-size:.34em;margin-left:8px}
+.fixed{font:13px var(--type);letter-spacing:.12em;color:var(--label);margin-top:18px}
+#focusNote{position:relative;display:inline-block;margin-top:14px;font:calc(28px * var(--ks))/1 var(--ko);color:var(--red)}
+#focusNote .x{font:13px var(--body);color:var(--label);margin-left:14px}
+#gcol{position:relative}
+#graph{height:clamp(300px,24cqw,460px);margin:96px 50px 0 96px}
+#anaT{position:absolute;right:58px;top:42px;display:flex;align-items:center;gap:14px;z-index:3}
+.ana{width:44px;height:26px;display:inline-block}
+.g-live{display:block}
+#ctrl{display:flex;align-items:center;gap:clamp(40px,4.4cqw,92px);margin:112px 0 0 24px;flex-wrap:wrap}
+#tp{flex:1 1 560px;display:flex;align-items:center;gap:clamp(22px,2.2cqw,42px);min-width:0}
+.tb{position:relative;font:24px/1 var(--hand);width:34px;height:34px;display:grid;place-items:center;flex:none}
+.tplay{position:relative;width:70px;height:70px;flex:none}
+#tp .tc,#volVal{color:var(--graphite)}
+#mon,#lvOpts{position:relative}
+.scrub{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:18px;margin-left:clamp(6px,1.6cqw,36px)}
+.tc{font:28px/1 var(--hand);min-width:2.2em}
+.track{flex:1 1 0;min-width:40px;height:26px;display:block;touch-action:none}
+.vol{display:flex;align-items:center;gap:14px;margin-left:clamp(0px,1.6cqw,36px);flex:none}
+.track.short{flex:0 0 110px}
+#liveMsg{flex:1;min-width:300px}
+#liveMsg p{margin:12px 0 0;font:15px/1.8 var(--body);color:var(--soft);white-space:nowrap}
+#liveMsg p.warn{color:var(--red)}
+#vProc.live #tp{display:none}
+#vProc:not(.live) #liveMsg{display:none}
+.opts{display:flex;gap:36px;margin-top:16px;align-items:baseline}
+.opt{font:calc(clamp(32px,2.1cqw,40px) * var(--ks))/1 var(--ko);white-space:nowrap}
+.opt.off{color:#8a877e}
+.opts.nums{gap:52px;align-items:center;margin-top:22px}
+.optn{font:60px/1 var(--hand);width:34px;text-align:center}
+.optn.off{color:#8a877e}
+.unit{font:13px var(--type);letter-spacing:.2em;color:var(--label);margin-left:-10px}
+.check{flex:none;margin-right:16px;font:46px/1 var(--type);letter-spacing:.16em;color:var(--red);
+  border:4px solid currentColor;outline:2px solid currentColor;outline-offset:5px;padding:18px 22px 14px 28px;
+  transform:rotate(-6deg);filter:url(#sk-stamp);text-align:center;user-select:none}
+.check:hover{opacity:.8}
+.check small{display:block;font-size:12px;letter-spacing:.3em;margin-top:9px}
 
-/* pen underline — an ink stroke wiped in left→right, tapered at both ends and
-   very slightly wavy, so it reads as a pen on paper rather than a CSS bar */
-.selw{position:relative;display:inline-block;max-width:100%}
-.pen{position:absolute;left:0;right:0;bottom:-3px;height:7px;pointer-events:none;
-  background-repeat:no-repeat;background-size:100% 100%;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 7' preserveAspectRatio='none'%3E%3Cpath d='M1 4.35 C 46 2.5 108 1.55 176 1.9 C 226 2.16 268 2.85 299 2.2 L299 3.55 C 268 4.45 226 3.9 176 3.62 C 108 3.34 46 4.5 1 5.5 Z' fill='%23141310'/%3E%3C/svg%3E");
-  clip-path:inset(0 100% 0 0);
-  transition:clip-path .21s cubic-bezier(.25,.72,.32,1)}
-.selw:hover .pen,.selw:focus-within .pen{clip-path:inset(0 0 0 0)}
-@media (prefers-reduced-motion:reduce){ .pen{transition:none} }
-.field{display:flex;flex-direction:column;gap:2px}
-
-/* ── control block ──
-   Two tiers, split by interaction type. Discrete pickers (dropdowns) are text
-   objects and want compartments; the frequency range is a spatial control and
-   wants the full measure. Inline together they starve each other. */
-.ctrl{border-bottom:1px solid var(--line)}
-.ctrl-row{display:flex;align-items:flex-end;gap:36px;flex-wrap:wrap;padding:32px 0}
-.ctrl-row+.ctrl-row{border-top:1px solid var(--line)}
-.pickers{display:flex;align-items:flex-end;flex-wrap:wrap;flex:1 1 auto;min-width:0}
-.pickers>.field{padding-right:44px;min-width:0;flex:1 1 auto}
-.pickers>.field+.field{padding-left:44px;border-left:1px solid var(--line)}
-.pickers>.field.narrow{flex:0 0 200px}
-.actions{display:flex;align-items:flex-end;gap:12px;flex:0 0 auto}
-.rangerow{flex-direction:column;align-items:stretch;gap:18px}
-.rangehead{display:flex;justify-content:space-between;align-items:baseline;gap:20px}
-
-/* ── frequency range — two handles that snap hard onto their own stops.
-   The axis is split: the four low stops share the left third, the four high
-   stops the right third. A true log axis would squeeze 10k–18k into 9 % of
-   the track, which is undraggable. ── */
-.frange{position:relative;height:40px;user-select:none;touch-action:none}
-.fr-track{position:absolute;left:0;right:0;top:9px;height:3px;background:var(--line);border-radius:2px}
-.fr-fill{position:absolute;top:0;height:3px;background:var(--ink);border-radius:2px}
-.fr-tick{position:absolute;top:6px;width:1px;height:9px;background:var(--line2);
-  transform:translateX(-.5px)}
-.fr-lab{position:absolute;top:22px;transform:translateX(-50%);font-family:var(--mono);
-  font-size:12px;color:var(--mute);white-space:nowrap;cursor:pointer;padding:2px 6px}
-.fr-lab:hover{color:var(--ink)}
-.fr-lab.on{color:var(--ink);font-weight:600}
-.fr-h{position:absolute;top:3px;width:15px;height:15px;margin-left:-7.5px;border-radius:50%;
-  background:var(--card);border:2px solid var(--ink);padding:0;cursor:ew-resize;z-index:2}
-.fr-h:hover,.fr-h:focus{background:var(--ink);outline:none}
-
-/* compact ghost button — shared by the file controls and the transport skips */
-.ghost{border:1px solid var(--line2);border-radius:999px;background:transparent;
-  padding:9px 17px;font-size:13.5px;cursor:pointer;line-height:1.2;
-  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
-  transition:border-color .18s var(--ease),background .18s var(--ease)}
-.ghost:hover{border-color:var(--ink);background:rgba(20,19,16,.05)}
-.ghost[hidden]{display:none}
-.ghost.mono{font-family:var(--mono);font-size:12px;letter-spacing:-.02em;padding:9px 14px}
-
-/* ── shell ── */
-#statusBar{border-bottom:1px solid var(--line);text-align:center;padding:13px 16px;position:relative;z-index:3}
-
-/* ── ZONE 1 · masthead ─────────────────────────────────────────
-   Three bands, each with its own ground tone and rules, so the title,
-   the source/playback module and the workspace never read as one slab. */
-#mast{position:relative;z-index:3;padding:104px 0 92px;text-align:center}
-#wordmark{font-weight:700;letter-spacing:-.038em;line-height:.85;
-  font-size:clamp(42px,10.4vw,168px);user-select:none;cursor:pointer}
-#tagline{margin-top:26px}
-
-#nav{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
-  position:relative;z-index:3;background:var(--paper)}
-#nav[hidden]{display:none}
-.navrow{display:flex;justify-content:center;gap:9px;padding:20px 0}
-
-/* ── ZONE 2 · source & playback ── recessed ground marks it as a module */
-#deck{position:relative;z-index:3;background:var(--paper2);
-  border-bottom:1px solid var(--line);padding:36px 0 34px}
-#deck[hidden]{display:none}
-.deckgrid{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap}
-.deckplay{margin-top:34px;padding-top:32px;border-top:1px solid var(--line)}
-/* live tab audio is a stream, not a file — there is nothing to seek */
-#deck.live .tbtns,#deck.live .trow{display:none}
-#liveNote{text-align:center;padding:6px 0 2px}
-#liveNote[hidden]{display:none}
-#liveNote p{margin:12px auto 0;max-width:56ch;color:var(--ink2);font-size:13.5px;line-height:1.75}
-#liveNote p#liveWarn{color:var(--red)}
-#liveWarn[hidden]{display:none}
-.dcell{display:flex;align-items:flex-end;gap:18px;min-width:0}
-.dcell.r{margin-left:auto}
-/* every control in the deck is 36px tall — the same height as the ＋파일 /
-   삭제 ghost buttons on the same row */
-.dcell .field>.selw,.dcell .field>.volrow,.dcell .field>.circ{height:36px}
-.dcell .field>.selw .cs-trigger{height:36px;padding-top:0;padding-bottom:0}
-.dcell .field>.circ{width:36px;border-color:var(--line2)}
-.dcell .field>.circ:hover{border-color:var(--ink)}
-.dcell .field>.circ.on{border-color:var(--ink)}
-.volrow{display:flex;align-items:center;gap:11px}
-#volVal{font-family:var(--mono);font-size:12.5px;color:var(--mute);min-width:30px}
-/* ── transport ── buttons centred on top, scrubber underneath */
-/* ── ZONE 3 · workspace ── the mode name repeats here, large and bold */
-#sectitle{padding:150px 0 118px}
-#sectitle[hidden]{display:none}
-#secName{font-size:clamp(36px,5.4vw,74px);font-weight:700;letter-spacing:-.04em;
-  line-height:.98;margin:26px 0 0}
-#secDesc{margin-top:30px}
-
-/* ── landing ── program title, not a web page */
-#panel-landing{padding-top:40px}
-#menu{border-top:1px solid var(--ink)}
-.mrow{display:flex;align-items:baseline;gap:26px;width:100%;text-align:left;
-  background:transparent;border:none;border-bottom:1px solid var(--line);
-  padding:82px 8px;cursor:pointer;transition:background .2s var(--ease),padding .2s var(--ease)}
-.mrow:hover{background:rgba(20,19,16,.045);padding-left:20px;padding-right:0}
-.mrow .mn{font-family:var(--mono);font-size:12.5px;color:var(--mute);flex:0 0 auto;width:26px}
-.mrow .mt{font-size:clamp(26px,3.4vw,44px);font-weight:700;letter-spacing:-.035em;
-  flex:0 0 auto;min-width:min(38vw,300px);line-height:1}
-.mrow .md{color:var(--mute);font-size:14px;flex:1;min-width:0}
-.mrow .ma{font-size:22px;flex:0 0 auto;opacity:.25;transition:opacity .2s var(--ease),transform .2s var(--ease)}
-.mrow:hover .ma{opacity:1;transform:translateX(6px)}
-#specs{display:flex;flex-wrap:wrap;gap:0;margin-top:110px;border-top:1px solid var(--line)}
-#specs>div{flex:1 1 220px;padding:34px 24px 34px 0;display:flex;flex-direction:column;gap:7px}
-#specs b{font-family:var(--mono);font-size:14px;font-weight:500;letter-spacing:-.02em}
-.tbtns{display:flex;align-items:center;justify-content:center;gap:11px}
-.circ.lg{width:50px;height:50px;background:var(--ink);color:var(--card);
-  border-color:var(--ink);font-size:15px}
-.circ.lg:hover{background:#000;color:var(--card)}
-.trow{display:flex;align-items:center;gap:16px;margin-top:20px}
-#seek{flex:1;height:22px;position:relative;cursor:pointer;min-width:100px}
-#seek::before{content:'';position:absolute;left:0;right:0;top:10px;height:3px;
-  background:var(--line);border-radius:2px}
-#seekFill{position:absolute;left:0;top:10px;height:3px;background:var(--ink);
-  border-radius:2px;width:0}
-#seekDot{position:absolute;top:5px;left:0;width:13px;height:13px;border-radius:50%;
-  background:var(--ink);margin-left:-6.5px;pointer-events:none;
-  transition:transform .15s var(--ease)}
-#seek:hover #seekDot{transform:scale(1.25)}
-.tc{font-family:var(--mono);font-size:12.5px;color:var(--mute);flex:0 0 auto;
-  letter-spacing:-.02em;min-width:38px}
-.tc.r{text-align:right}
-
-#wrap{position:relative;z-index:3;padding-bottom:110px}
-.bar{display:flex;gap:30px;align-items:flex-end;flex-wrap:wrap;
-  padding:34px 0 30px;border-bottom:1px solid var(--line)}
-.grow{flex:1}
-
-/* ── canvas ── */
-#eqwrap,#eqwrapL{position:relative;margin-top:34px}
-#eqwrapL[hidden]{display:none}
-canvas{width:100%;height:clamp(320px,46vh,520px);display:block;border:1px solid var(--line);
-  touch-action:none;background:var(--card)}
-#eq{cursor:crosshair}
-#eqL{cursor:default}
-/* first entry into Listening: the only thing to do is start, so that is the
-   only thing on screen */
-#eStart{display:flex;justify-content:center;padding:150px 0 140px}
-#eStart[hidden]{display:none}
-.pill.big{font-size:19px;padding:30px 66px;letter-spacing:.11em}
-#tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--card);
-  padding:6px 10px;font-family:var(--mono);font-size:12px;white-space:nowrap;opacity:0;
-  transition:opacity .12s linear;transform:translate(-50%,-170%)}
-#tip.on{opacity:1}
-
-/* ── number boxes ── */
-#nboxes{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-top:none;background:var(--card)}
-.bandrow{display:flex;align-items:stretch;flex:1 1 330px;min-width:300px}
-.bandrow+.bandrow{border-left:1px solid var(--line)}
-.bandtag{width:44px;display:grid;place-items:center;background:var(--ink);color:var(--card);
-  font-weight:700;font-size:13px;flex:0 0 auto}
-.nbox{flex:1;padding:14px 16px;cursor:ns-resize;user-select:none;min-width:0}
-.nbox+.nbox{border-left:1px solid var(--line)}
-.nbox:hover{background:var(--paper2)}
-.nbox .k{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--mute);font-weight:500}
-.nbox .v{font-family:var(--mono);font-size:17px;font-weight:500;letter-spacing:-.03em;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.nbox input{width:100%;border:none;background:var(--paper2);font-family:var(--mono);font-size:17px;
-  padding:0;outline:none}
-.nbox.act{background:var(--paper2)}
-.nbox.act .k{color:var(--ink)}
-
-/* ── ear ── */
-#question{font-weight:600;letter-spacing:-.03em;line-height:1.06;
-  font-size:clamp(28px,3.7vw,58px);margin:66px 0 42px;max-width:22ch}
-.bandBtns{display:flex;flex-wrap:wrap;gap:9px;max-width:1000px}
-.bandBtns button{flex:0 1 88px;min-width:80px;padding:16px 4px;font-family:var(--mono);
-  font-size:14px;letter-spacing:-.02em;text-align:center}
-.bandBtns button.hit{background:var(--ink);color:var(--card)}
-.bandBtns button.miss{background:var(--red);border-color:var(--red);color:#fff}
-.bandBtns button.near{box-shadow:inset 0 0 0 2px var(--ink);background:var(--paper2)}
-.bandBtns button.aud{background:var(--paper2);box-shadow:inset 0 0 0 2px var(--line2)}
-.bigbtns{display:flex;gap:14px;max-width:600px}
-.bigbtns button{flex:1;padding:38px 0;font-size:17px;font-weight:600;letter-spacing:.03em}
-.stat{display:flex;flex-direction:column;align-items:flex-start;gap:0;min-width:78px}
-.stat b{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:-.03em;line-height:1.1}
-
-/* ── tables ── */
-table{border-collapse:collapse;width:100%}
-th,td{text-align:left;padding:13px 6px;border-bottom:1px solid var(--line);vertical-align:top}
-thead th{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--mute);font-weight:500}
-td.num{font-family:var(--mono);font-size:13.5px}
-.kv td:first-child{width:34%;font-weight:600;font-size:14px}
-.kv td:last-child{font-family:var(--mono);font-size:13.5px;color:var(--ink2)}
+/* ── question settings ── */
+#set{padding-top:clamp(280px,18.4cqw,350px)}
+.h3{font:calc(clamp(48px,3.2cqw,60px) * var(--ks))/1 var(--ko);margin:0;display:inline-block}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);column-gap:clamp(56px,6.4cqw,130px);margin-top:110px}
+.num{font:400 clamp(84px,5.8cqw,112px)/.75 var(--hand)}
+.ttl{font:calc(clamp(36px,2.3cqw,44px) * var(--ks))/1 var(--ko);margin-top:30px}
+.col p,.lead2{font:15px/1.85 var(--body);color:var(--soft);margin:18px 0 0;max-width:380px}
+.ctl{margin-top:44px;min-height:118px}
+#ruler{height:84px;touch-action:none}
+.keys{margin:0;padding:0;list-style:none}
+.keys li{display:flex;align-items:baseline;gap:22px;margin-bottom:12px}
+.keys .k{font:13px var(--type);letter-spacing:.14em;color:var(--label);width:64px}
+.keys .v{font:calc(32px * var(--ks))/1 var(--ko)}
 
 /* ── stats ── */
-.heat{display:flex;gap:6px;align-items:flex-end;height:190px;border-bottom:1px solid var(--ink)}
-.heat .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
-.heat .bar{min-height:2px;width:100%;background:var(--ink)}
-.caps{display:flex;gap:6px;margin-top:10px}
-.caps div{flex:1;text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--mute);line-height:1.5}
-.sect{margin-top:76px}
-.sect>h2{font-size:17px;font-weight:600;margin:0 0 18px;letter-spacing:-.015em;
-  padding-bottom:13px;border-bottom:1px solid var(--ink);display:flex;align-items:baseline;gap:14px}
-.sect>h2 .idx{font-family:var(--mono);font-size:12.5px;color:var(--mute);font-weight:400}
+.sum{display:flex;gap:clamp(36px,3.6cqw,80px);align-items:flex-end}
+.sum .lbl{white-space:nowrap}
+.acts{display:flex;flex-wrap:wrap;align-items:baseline;gap:14px 44px;margin-top:30px}
+#shareBtn,#reset{position:relative;display:inline-block;font:calc(32px * var(--ks))/1 var(--ko);white-space:nowrap}
+#shareBtn{color:var(--red)}
+#reset{color:var(--graphite)}
+#reset b{font-weight:400;color:var(--red);margin-left:18px}
+#reset i{font-style:normal;margin-left:18px;color:var(--label)}
+.sum .big{font:400 clamp(60px,4.4cqw,84px)/.8 var(--hand);margin-top:14px;white-space:nowrap}
+.sum .big small{font-size:.5em;margin-left:4px}
+.sec2{padding-top:clamp(260px,17.4cqw,330px)}
+.lead2{margin-top:28px;max-width:none}
+#legend{display:flex;gap:40px;margin:0 8px 18px 0}
+#legend span{display:flex;align-items:center;gap:12px;font:14px var(--body);color:var(--soft)}
+#legend i{display:inline-block;width:26px;height:18px}
+#chart{height:clamp(300px,21cqw,420px);margin:150px 30px 0 90px}
+.wcols{display:grid;grid-template-columns:repeat(3,1fr);column-gap:clamp(56px,6.4cqw,130px);margin-top:110px}
+.wnum{font:400 clamp(84px,5.8cqw,112px)/.75 var(--hand);display:inline-block}
+.wf{font:400 clamp(56px,4cqw,78px)/1 var(--pen);margin-top:40px;white-space:nowrap;display:table}
+.wf small{font-size:.42em;margin-left:6px}
+.wr{display:flex;align-items:baseline;gap:18px;margin-top:26px}
+.wr b{font:400 44px/1 var(--hand);color:var(--graphite)}
+.wr span{font:15px var(--body);color:var(--soft)}
+.wgo{display:inline-block;margin-top:34px;font:calc(32px * var(--ks))/1 var(--ko)}
+.empty{font:calc(34px * var(--ks))/1.5 var(--ko);color:var(--soft);margin-top:90px}
+#logGrid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);column-gap:clamp(70px,7.6cqw,160px);margin-top:150px;align-items:start}
+#trend{height:clamp(280px,19cqw,360px);margin:30px 40px 0 70px}
+#ledger{width:100%;border-collapse:collapse}
+#ledger th{font:12px var(--type);letter-spacing:.22em;text-transform:uppercase;color:var(--label);text-align:left;font-weight:400;padding:0 0 18px}
+#ledger td{padding:12px 0 10px;vertical-align:baseline}
+#ledger .n,#ledger .lv{font:13px var(--type);letter-spacing:.12em;color:var(--label);width:70px}
+#ledger .sc{font:400 42px/1 var(--hand);width:110px}
+#ledger .sc span{display:inline-block}
+#ledger .dt{font:15px var(--body);color:var(--soft);white-space:nowrap}
 
-/* ── overlay sheet ── */
-#ov{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:28px;
-  background:rgba(255,251,243,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  opacity:0;transition:opacity .19s var(--ease);cursor:pointer}
-#ov.show{opacity:1}
-#ov[hidden]{display:none}
-#sheet{background:var(--card);border:1px solid var(--ink);width:min(780px,100%);
-  max-height:88vh;overflow:auto;padding:36px 38px 30px;
-  box-shadow:0 30px 70px -30px rgba(70,64,48,.32);
-  transform:translateY(16px) scale(.985);opacity:0;
-  transition:transform .26s var(--ease),opacity .2s var(--ease)}
-#ov.show #sheet{transform:none;opacity:1}
-/* Docked variant — used after a Match round so the revealed target curve
-   stays fully visible: no dim, no blur, sheet parked at the bottom edge. */
-#ov.dock{place-items:end center;padding:0;background:transparent;
-  backdrop-filter:none;-webkit-backdrop-filter:none}
-#ov.dock #sheet{width:100%;max-width:none;border-left:none;border-right:none;border-bottom:none;
-  max-height:min(34vh,300px);padding:16px var(--pad) 14px;
-  box-shadow:0 -24px 50px -28px rgba(70,64,48,.4);
-  transform:translateY(100%) scale(1)}
-#ov.dock.show #sheet{transform:none}
-#ov.dock .verdict{font-size:clamp(26px,3.2vw,40px);margin:2px 0 0}
-#ov.dock th,#ov.dock td{padding:6px 6px}
-#ov.dock .sheetfoot{margin-top:12px;padding-top:10px}
-.dockhead{display:flex;gap:34px;align-items:flex-start}
-.dockhead>.sc{flex:0 0 auto;min-width:104px}
-.dockhead>table{flex:1;min-width:0}
-.verdict{font-size:clamp(38px,5.6vw,66px);font-weight:700;letter-spacing:-.038em;line-height:1;
-  margin:10px 0 4px}
-.verdict.no{color:var(--red)}
-.sheetfoot{display:flex;align-items:center;gap:18px;margin-top:34px;padding-top:18px;
-  border-top:1px solid var(--line)}
-@media (prefers-reduced-motion:reduce){#ov,#sheet{transition:none}#sheet{transform:none}}
+/* ── footer ── */
+#foot{display:flex;justify-content:space-between;align-items:baseline;margin-top:clamp(270px,17.6cqw,340px);padding:58px 0 96px}
+#foot .go{font:38px/1 var(--hand)}
+/* Processing: twice the room between the settings and the closing rule */
+#vStats[hidden] ~ #foot{margin-top:clamp(540px,35.2cqw,680px)}
 
-.hint{color:var(--mute);font-size:13px;margin-top:30px;line-height:2.15}
-kbd{border:1px solid var(--line2);border-bottom-width:2px;border-radius:3px;padding:1px 6px;
-  font-family:var(--mono);font-size:11.5px;color:var(--ink)}
-#drop{position:fixed;inset:0;background:rgba(255,251,243,.93);border:2px dashed var(--ink);
-  display:none;align-items:center;justify-content:center;font-size:19px;font-weight:600;z-index:99}
-#drop.on{display:flex}
-#fileWarn{position:relative;z-index:5;background:var(--ink);color:var(--card);
-  padding:14px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
-  font-size:13px;line-height:1.6}
-#fileWarn[hidden]{display:none}
-#fileWarn b{font-weight:600}
-#fileWarn span{color:#c9c3b6;flex:1;min-width:240px}
-#fileWarn code{font-family:var(--mono);font-size:12px}
-#fileWarn .ghost{border-color:#5a544a;color:var(--card);flex:0 0 auto}
-#fileWarn .ghost:hover{border-color:var(--card);background:rgba(255,255,255,.08)}
-#folio{border-top:1px solid var(--line);margin-top:80px;padding:20px 0 0;
-  display:flex;justify-content:space-between}
+/* ── result note: a strip of lined paper over the analyser band ── */
+#result{position:absolute;z-index:8;width:min(62cqw,1120px);padding:40px 56px 34px}
+#result > svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:0}
+#result > div{position:relative;z-index:1}
+#result .rgrid{display:grid;grid-template-columns:auto 1fr auto;align-items:end;column-gap:60px;margin-top:6px}
+#result .score{font:400 132px/.8 var(--hand);color:var(--graphite);filter:url(#sk-pencil)}
+#result .score small{font-size:.26em;color:var(--soft)}
+#result .verdict{font:calc(46px * var(--ks))/1 var(--ko);color:var(--red);filter:url(#sk-ink)}
+#result .vals{display:flex;flex-wrap:wrap;gap:6px 36px;margin-top:20px;font:15px var(--body);color:#4a463f;white-space:nowrap}
+#result .vals b{font-weight:400;color:var(--label);margin-right:10px}
+#result .vals.multi{flex-direction:column}
+#tick{width:110px;height:96px}
+#result .rfoot{display:flex;justify-content:space-between;align-items:baseline;margin-top:30px}
+#stay{font:calc(32px * var(--ks)) var(--ko);color:var(--graphite);filter:url(#sk-pencil)}
+#result .next{font:14px var(--body);color:var(--label)}
+/* inside the (scaled) page, so it stacks under the note and over everything else */
+#catcher{position:absolute;inset:0;z-index:7}
 
-@media (max-width:1040px){
-  .ghost{padding:8px 14px}
-  .deckgrid{gap:22px}
-  .dcell{gap:14px}
-  .dcell.r{margin-left:0}
-  #mast{padding:68px 0 60px}
-  #sectitle{padding:88px 0 64px}
-  .bar{gap:22px;padding:28px 0 24px}
-  .ctrl-row{gap:24px;padding:26px 0}
-  .pickers>.field{padding-right:26px}
-  .pickers>.field+.field{padding-left:26px}
-  .mrow{gap:18px;padding:46px 6px}
-  .mrow .mt{min-width:0;flex:1 1 auto}
-  .mrow .md{flex:1 1 100%;order:3;padding-left:44px}
+/* ── share sheet ── */
+#shareSheet{position:fixed;inset:0;z-index:50;background:rgba(244,242,238,.86);display:grid;place-items:center;padding:24px}
+#ssPanel{position:relative;display:grid;grid-template-columns:auto auto;align-items:center;column-gap:56px;
+  padding:58px 64px 50px;max-width:min(980px,94vw)}
+#ssPanel > svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:0}
+#ssPanel > *:not(svg){position:relative;z-index:1}
+#ssImg{display:block;width:min(420px,44vw);aspect-ratio:1;background:#efece6;box-shadow:0 8px 22px -12px rgba(43,33,22,.4);transform:rotate(-1.2deg)}
+#ssPanel.busy #ssImg{opacity:.4}
+.ss-side{display:flex;flex-direction:column;align-items:flex-start;gap:22px}
+.ss-side .lbl{margin-bottom:6px}
+.ss-b{position:relative;font:calc(34px * .78)/1.15 'ROH HOE-CHAN','Nanum Pen Script',sans-serif;color:var(--graphite);white-space:nowrap}
+.ss-b.main{color:var(--red)}
+.ss-view{display:none;flex-direction:column;align-items:flex-start;gap:22px}
+#ssPanel.viewing .ss-view{display:flex}
+#ssPanel.viewing .ss-side{display:none}
+.ss-msg{font:15px/1.8 var(--body);color:var(--soft);max-width:240px;margin:0}
+.ss-note{font:13px/1.7 var(--body);color:var(--label);max-width:250px;margin-top:6px}
+#ssClose{position:absolute;right:30px;top:26px;font:15px var(--body);color:var(--label)}
+
+/* ── notices, file drop ── */
+#toast{position:fixed;left:50%;bottom:34px;z-index:60;transform:translateX(-50%) rotate(-.6deg);
+  max-width:min(640px,90vw);padding:22px 30px 20px;background:#fbfaf6;
+  box-shadow:0 10px 30px -12px rgba(43,33,22,.35),0 1px 3px rgba(43,33,22,.18);
+  font:calc(30px * var(--ks))/1.45 var(--ko);color:var(--graphite)}
+#drop{position:fixed;inset:0;z-index:70;background:rgba(244,242,238,.9);display:grid;place-items:center;
+  font:calc(60px * var(--ks))/1 var(--ko);color:var(--graphite)}
+#drop svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+@container (max-width:1500px){
+  /* the transport gets a row of its own; monitor and CHECK sit under it */
+  #tp{flex:1 1 100%}
+  #ctrl{row-gap:56px}
+  #mon{margin-left:24px}
+  .check{margin-left:auto}
 }
-@media (max-width:900px){
-  :root{--pad:22px}
-  #mast{padding:52px 0 46px}
-  #question{margin:46px 0 32px}
-  #sectitle{padding:52px 0 34px}
+@container (max-width:1100px){
+  .strip{grid-template-columns:1fr;row-gap:36px}
+  .cell{padding:0}
+  #srcName{max-width:60cqw}
+  .cols,.wcols{grid-template-columns:1fr;row-gap:90px}
+  #logGrid{grid-template-columns:1fr;row-gap:120px}
+  #graph{margin:96px 20px 0 70px}
+  #polaroid{display:none}
+  #result{width:calc(100cqw - 2 * var(--mx))}
+  #result .rgrid{grid-template-columns:auto 1fr}
+  #tick{display:none}
 }
 </style>
 </head>
 <body>
-<div id="drop">오디오 파일을 놓으세요</div>
+<div id="zoom"><div id="page">
+  <header id="top">
+    <div class="byline"><span class="lbl">my personal eq workbook</span><span class="lbl">by. zysankym</span></div>
+    <nav class="graphite"><span id="navP" class="click" data-view="proc">Processing</span><span id="navS" class="click off" data-view="stats">Stats</span></nav>
+  </header>
 
-<div id="fileWarn" hidden>
-  <b>파일을 직접 열어서 실행 중입니다 — DSP가 열화 모드로 돌고 있습니다.</b>
-  <span>브라우저가 <code>file://</code> 에서 AudioWorklet과 탭 오디오를 차단하기 때문에,
-  고역 커브가 뭉개지는 기본 필터로 대체됩니다. 웹 주소(https 또는 localhost)로 열면 해결됩니다.</span>
-  <button class="ghost" id="fileWarnX">닫기</button>
-</div>
+  <section id="mast">
+    <h1 id="title"><span id="tMy">my personal</span><span id="tMain" class="graphite">EQ Workbook</span></h1>
+    <p id="sub" class="graphite">어디가 <span id="subKey">솟았는지</span> 듣고, 노드를 그 자리로 옮기세요.</p>
+    <div id="polaroid"><div class="cap graphite">헤드폰으로 들어요</div></div>
+  </section>
 
-<div id="statusBar" class="micro">EQ TRAINER</div>
+  <!-- ══════════ PROCESSING ══════════ -->
+  <main id="vProc">
+    <section class="strip" id="stripP">
+      <div class="cell c1"><h2 class="h2 pen" id="h2P">Processing</h2></div>
+      <div class="cell c2 srccell">
+        <div class="lbl">source</div>
+        <div class="srcrow" id="srcRow">
+          <span class="graphite click unset" id="srcName" title="소리 고르기 (파일은 끌어다 놓아도 돼요)">선택하세요</span><span id="caret" class="click"></span>
+        </div>
+        <div id="srcMenu" hidden></div>
+        <input type="file" id="fileIn" accept="audio/*" multiple hidden>
+      </div>
+      <div class="cell c3">
+        <div class="lbl">today</div>
+        <div class="todayrow"><span class="tally" id="tallyP"></span><span class="aside graphite" id="todayP">아직 0문제</span></div>
+      </div>
+    </section>
 
-<!-- ══════════ ZONE 1 · MASTHEAD ══════════ -->
-<header id="mast"><div class="container">
-  <div id="wordmark" title="처음 화면으로">EQ TRAINER</div>
-  <div id="tagline" class="micro">Ear training for mix engineers</div>
-</div></header>
+    <section id="ex">
+      <div class="askRow">
+        <div class="ask graphite" id="askP">어디가 솟았지?</div>
+        <div id="readout">
+          <div class="fl"><span class="lbl" id="rdBand">band 1</span><span class="freq pen" id="rdFreq">1.20<small>kHz</small></span></div>
+          <div class="fixed">+10 dB · Q 1 · 고정</div>
+          <div id="focusNote" hidden></div>
+        </div>
+      </div>
+      <div id="gcol">
+        <div id="graph"></div>
+        <div id="anaT" class="click" title="아날라이저 켜기 / 끄기"><span class="lbl">analyser</span><span class="ana" id="ana"></span></div>
+      </div>
+      <div id="ctrl">
+        <div id="tp">
+          <span class="tb graphite click" id="b30" data-skip="-30" title="30초 뒤로">30</span><span class="tb graphite click" id="b10" data-skip="-10" title="10초 뒤로">10</span>
+          <span class="tplay click" id="play" title="재생 / 정지 (space)"></span>
+          <span class="tb graphite click" id="f10" data-skip="10" title="10초 앞으로">10</span><span class="tb graphite click" id="f30" data-skip="30" title="30초 앞으로">30</span>
+          <span class="scrub"><span class="tc" id="tcur">0:00</span><span class="track" id="scrub"></span><span class="tc" id="tdur">0:00</span></span>
+          <span class="vol"><span class="lbl">vol</span><span class="track short" id="vol"></span><span class="tc" id="volVal" style="font-size:26px">60</span></span>
+        </div>
+        <div id="liveMsg">
+          <span class="lbl">from another tab</span>
+          <p>원본 탭의 소리가 이 EQ를 거쳐서 나가요.<br>재생·정지·이동은 원본 탭(유튜브 등)에서 조작하세요.</p>
+          <p class="warn" id="liveWarn" hidden>원본 탭의 소리를 끄지 못했어요. 원본과 EQ 소리가 겹쳐 들리니 원본 탭을 음소거해 주세요.</p>
+        </div>
+        <div id="mon">
+          <div class="lbl">monitor · x</div>
+          <div class="opts"><span class="opt pen click" id="mA" title="문제의 EQ로 듣기">A 정답</span><span class="opt graphite click off" id="mB" title="내 EQ로 듣기">B 내 것</span></div>
+        </div>
+        <div class="check click" id="check" title="확인 (enter)"><span id="checkTxt">CHECK</span><small id="checkSub">확인 · enter</small></div>
+      </div>
+    </section>
 
-<div id="nav" hidden><div class="container navrow">
-  <button class="pill tab" data-mode="ear">Listening</button>
-  <button class="pill tab" data-mode="match">Processing</button>
-  <button class="pill tab" data-mode="stats">Stats</button>
+    <section id="set">
+      <h3 class="h3 graphite" id="setH">문제 설정</h3>
+      <div class="cols">
+        <div class="col" id="col1">
+          <div class="num graphite">01</div>
+          <div class="ttl graphite">레벨</div>
+          <p>한 문제에 솟는 밴드 수예요. 처음이라면 1밴드부터.</p>
+          <div class="ctl"><div class="opts nums" id="lvOpts"><span class="optn click" id="lv1" data-lv="1">1</span><span class="optn click" id="lv2" data-lv="2">2</span><span class="optn click" id="lv3" data-lv="3">3</span><span class="unit">밴드</span></div></div>
+        </div>
+        <div class="col" id="col2">
+          <div class="num graphite">02</div>
+          <div class="ttl graphite">주파수 범위</div>
+          <p>문제가 나올 구간이에요. 양 끝을 좁히면 쉬워져요.</p>
+          <div class="ctl"><div id="ruler" class="click"></div></div>
+        </div>
+        <div class="col" id="col3">
+          <div class="num graphite">03</div>
+          <div class="ttl graphite">단축키</div>
+          <p>손을 키보드에 둔 채로 풀 수 있어요.</p>
+          <div class="ctl"><ul class="keys">
+            <li><span class="k">space</span><span class="v graphite">재생 · 정지</span></li>
+            <li><span class="k">x</span><span class="v graphite">정답 ↔ 내 것</span></li>
+            <li><span class="k">← →</span><span class="v graphite">노드 옮기기</span></li>
+            <li><span class="k">enter</span><span class="v graphite">확인 · 다음</span></li>
+          </ul></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ══════════ STATS ══════════ -->
+  <main id="vStats" hidden>
+    <section class="strip" id="stripS">
+      <div class="cell c1"><h2 class="h2 pen" id="h2S">Stats</h2></div>
+      <div class="cell c2">
+        <div class="sum">
+          <div><div class="lbl">answered</div><div class="big graphite" id="sAns">0</div></div>
+          <div><div class="lbl">accuracy</div><div class="big pen" id="sAcc">—</div></div>
+          <div><div class="lbl">best streak</div><div class="big graphite" id="sBest">0</div></div>
+        </div>
+        <div class="acts"><span id="shareBtn" class="click" title="기록을 이미지로 만들어 SNS에 공유">공유하기</span><span id="reset" class="click">기록 초기화</span></div>
+      </div>
+      <div class="cell c3">
+        <div class="lbl">today</div>
+        <div class="todayrow"><span class="tally" id="tallyS"></span><span class="aside graphite" id="todayS">아직 0문제</span></div>
+      </div>
+    </section>
+
+    <section class="sec2" id="bands">
+      <div class="askRow">
+        <div class="ask graphite" id="askS">어디가 약하지?</div>
+        <div id="legend"><span><i id="lg1"></i>80% 이상</span><span><i id="lg2"></i>50 – 80%</span><span><i id="lg3"></i>50% 미만</span></div>
+      </div>
+      <div id="chart"></div>
+    </section>
+
+    <section class="sec2" id="weak">
+      <h3 class="h3 graphite" id="weakH">취약 대역</h3>
+      <p class="lead2">정답률이 낮은 대역 순서예요.</p>
+      <div class="wcols" id="wcols"></div>
+    </section>
+
+    <section class="sec2" id="logS">
+      <h3 class="h3 graphite" id="logH">점수 기록</h3>
+      <p class="lead2">최근 20문제의 점수예요. 50점 아래는 빨간색으로 표시돼요.</p>
+      <div id="logGrid">
+        <div><div id="trend"></div></div>
+        <table id="ledger"><thead><tr><th>#</th><th>level</th><th>score</th><th>정답 → 내 답</th></tr></thead><tbody id="lrows"></tbody></table>
+      </div>
+    </section>
+  </main>
+
+  <footer id="foot">
+    <span class="byline"><span class="lbl">my personal eq workbook</span><span class="lbl">by. zysankym</span></span>
+    <span class="lbl" id="folio">— 14 —</span>
+    <span class="go graphite click" id="goView">Stats 보기 →</span>
+  </footer>
+
+  <div id="result" hidden>
+    <div class="lbl" id="rLbl">result</div>
+    <div class="rgrid">
+      <div class="score" id="rScore">0<small> / 100</small></div>
+      <div><div class="verdict" id="rVerdict"></div><div class="vals" id="rVals"></div></div>
+      <div id="tick"></div>
+    </div>
+    <div class="rfoot"><span class="click" id="stay">계속 듣기</span><span class="next">아무 데나 누르면 다음 문제 →</span></div>
+  </div>
+  <div id="catcher" hidden></div>
 </div></div>
-
-<!-- ══════════ ZONE 2 · SOURCE & PLAYBACK ══════════ -->
-<div id="deck" hidden><div class="container">
-  <div class="deckgrid">
-    <div class="dcell">
-      <div class="field" style="min-width:0">
-        <span class="micro">Source</span>
-        <span class="selw"><select id="srcSel"></select><i class="pen"></i></span>
-      </div>
-      <label class="ghost" title="오디오 파일 추가 (드래그앤드롭도 가능)">＋ 파일<input type="file" id="fileIn" accept="audio/*" multiple hidden></label>
-      <button class="ghost" id="delSrc" title="현재 소스 삭제">삭제</button>
+<div id="shareSheet" hidden>
+  <div id="ssPanel">
+    <img id="ssImg" alt="공유할 기록 이미지">
+    <div class="ss-side">
+      <span class="lbl">share</span>
+      <span class="ss-b main click" id="ssKakao">카카오톡</span>
+      <span class="ss-b click" id="ssX">X</span>
+      <span class="ss-b click" id="ssFb">Facebook</span>
+      <span class="ss-b click" id="ssLink">링크 복사</span>
+      <span class="ss-b click" id="ssNative">다른 앱으로 공유…</span>
+      <span class="ss-b click" id="ssSave">이미지 저장</span>
+      <p class="ss-note">링크를 받은 사람은 이 기록 카드를 보고 바로 시작할 수 있어요. 인스타그램·디스코드는 링크 복사나 다른 앱으로 공유를 쓰세요.</p>
     </div>
-    <div class="dcell r">
-      <div class="field">
-        <span class="micro">Analyser</span>
-        <button class="circ" id="anaBtn" title="스펙트럼 아날라이저 (Pre / Post)">
-          <svg width="19" height="14" viewBox="0 0 19 14" fill="none" stroke="currentColor"
-               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M1 7h1.9l1.4-4.6 1.9 9.2 1.8-6.4 1.6 4.2 1.5-2.6 1.4 1.4 1.2-1.2H18"/>
-          </svg>
-        </button>
-      </div>
-      <div class="field">
-        <span class="micro">Volume</span>
-        <div class="volrow">
-          <input type="range" id="vol" min="0" max="100" value="60" style="width:126px;accent-color:#141310">
-          <span id="volVal">60</span>
-        </div>
-      </div>
+    <div class="ss-view">
+      <span class="lbl">shared record</span>
+      <p class="ss-msg">누군가 자기 EQ 귀 훈련 기록을 보냈어요.</p>
+      <span class="ss-b main click" id="ssTry">나도 해보기 →</span>
     </div>
+    <span class="click" id="ssClose">닫기</span>
   </div>
-
-  <div class="deckplay">
-    <div id="liveNote" hidden>
-      <span class="micro">Live tab audio</span>
-      <p>원본 탭의 소리는 스피커로 나가지 않고 이곳의 EQ를 거쳐서만 들립니다.
-         재생·정지·구간 이동은 원본 탭(유튜브 등)에서 직접 조작하세요.</p>
-      <p id="liveWarn" hidden>⚠ 이 브라우저가 원본 탭의 스피커 출력을 끄지 못했습니다.
-         원본 소리와 EQ 소리가 겹쳐 들리므로 문제 풀이 결과를 믿을 수 없습니다 —
-         원본 탭을 음소거하거나 크롬 최신 버전을 쓰세요.</p>
-    </div>
-    <div class="tbtns">
-      <button class="ghost mono" data-skip="-30" title="30초 뒤로">−30</button>
-      <button class="ghost mono" data-skip="-10" title="10초 뒤로">−10</button>
-      <button class="circ lg" id="playBtn" title="재생 / 정지 (Space)">▶</button>
-      <button class="ghost mono" data-skip="10" title="10초 앞으로">+10</button>
-      <button class="ghost mono" data-skip="30" title="30초 앞으로">+30</button>
-    </div>
-    <div class="trow">
-      <span class="tc" id="tcur">0:00</span>
-      <div id="seek" title="클릭하거나 드래그해서 이동">
-        <div id="seekFill"></div><div id="seekDot"></div>
-      </div>
-      <span class="tc r" id="tdur">0:00</span>
-    </div>
-  </div>
-</div></div>
-
-<!-- ══════════ ZONE 3 · WORKSPACE ══════════ -->
-<div id="wrap" class="container">
-
-<div id="sectitle" hidden>
-  <div class="micro" id="secIdx">01</div>
-  <h2 id="secName">Listening</h2>
-  <div class="micro" id="secDesc"></div>
 </div>
-
-<!-- ══════════ LANDING ══════════ -->
-<section id="panel-landing">
-  <div id="menu">
-    <button class="mrow" data-mode="ear">
-      <span class="mn">01</span>
-      <span class="mt">Listening</span>
-      <span class="md">부스트·컷된 대역을 귀로 식별하세요</span>
-      <span class="ma">→</span>
-    </button>
-    <button class="mrow" data-mode="match">
-      <span class="mn">02</span>
-      <span class="mt">Processing</span>
-      <span class="md">들은 커브를 EQ로 직접 재현하세요</span>
-      <span class="ma">→</span>
-    </button>
-    <button class="mrow" data-mode="stats">
-      <span class="mn">03</span>
-      <span class="mt">Stats</span>
-      <span class="md">대역별 정답률과 취약 대역을 확인하세요</span>
-      <span class="ma">→</span>
-    </button>
-  </div>
-  <div id="specs">
-    <div><span class="micro">Range</span><b id="specRange">60 Hz – 12 kHz</b></div>
-    <div><span class="micro">Bands</span><b id="specBands">Half-octave</b></div>
-    <div><span class="micro">Source</span><b>Noise (Pink / White) · 첨부 파일</b></div>
-  </div>
-</section>
-
-<!-- ══════════ MATCH ══════════ -->
-<section id="panel-match">
-  <div class="ctrl">
-    <div class="ctrl-row">
-      <div class="pickers">
-        <div class="field"><span class="micro">Level</span>
-          <span class="selw"><select id="mLevel">
-            <option value="1">01 — 1밴드 · 쉬움</option>
-            <option value="2" selected>02 — 1밴드 · 보통</option>
-            <option value="3">03 — 2밴드 · 보통</option>
-            <option value="4">04 — 3밴드 · 어려움</option>
-          </select><i class="pen"></i></span>
-        </div>
-        <div class="field"><span class="micro">Monitor</span>
-          <div style="display:flex;gap:8px">
-            <button class="pill sm on" id="mA">A · Target</button>
-            <button class="pill sm" id="mB">B · Mine</button>
-          </div>
-        </div>
-      </div>
-      <div class="actions">
-        <button class="pill solid caps" id="mCheck" disabled>Check</button>
-      </div>
-    </div>
-    <div class="ctrl-row rangerow">
-      <div class="rangehead">
-        <span class="micro">Frequency Range</span>
-        <span class="micro" data-bandcount>—</span>
-      </div>
-      <div class="frange" data-range></div>
-    </div>
-  </div>
-
-  <div id="eqwrap">
-    <canvas id="eq"></canvas>
-    <div id="tip"></div>
-  </div>
-  <div id="nboxes"></div>
-
-  <div class="hint">
-    노드 드래그 = 주파수·게인 · 숫자 위아래 드래그 = 값 조절 · 더블클릭 = 직접 입력<br>
-    <kbd>Shift</kbd> 미세 · <kbd>Alt</kbd>드래그 또는 <kbd>휠</kbd> = Q · <kbd>Ctrl</kbd> 옥타브 스냅 ·
-    <kbd>Space</kbd> 재생 · <kbd>X</kbd> A/B · <kbd>Enter</kbd> Check
-  </div>
-</section>
-
-<!-- ══════════ EAR ══════════ -->
-<section id="panel-ear" hidden>
-  <div class="ctrl">
-    <div class="ctrl-row">
-      <div class="pickers">
-        <div class="field"><span class="micro">Mode</span>
-          <span class="selw"><select id="eMode">
-            <option value="which">Which Band — 부스트 대역</option>
-            <option value="dir">Boost or Cut — 방향</option>
-            <option value="cut">Cut Detective — 노치 위치</option>
-          </select><i class="pen"></i></span>
-        </div>
-        <div class="field"><span class="micro">Gain</span>
-          <span class="selw"><select id="eGain">
-            <option value="beginner" selected>Beginner — 12 / 15 / 18 dB</option>
-            <option value="intermediate">Intermediate — 6 / 9 / 12 dB</option>
-            <option value="advanced">Advanced — 4 / 6 dB</option>
-            <option value="expert">Expert — 3 / 4 dB</option>
-          </select><i class="pen"></i></span>
-        </div>
-        <div class="field narrow"><span class="micro">Q</span>
-          <span class="selw"><select id="eQ"><option value="1">1.0</option><option value="2" selected>2.0</option><option value="4">4.0</option></select><i class="pen"></i></span>
-        </div>
-      </div>
-      <div class="actions">
-        <button class="pill solid caps" id="eNew">New Question</button>
-      </div>
-    </div>
-    <div class="ctrl-row rangerow">
-      <div class="rangehead">
-        <span class="micro">Frequency Range</span>
-        <span class="micro" data-bandcount>—</span>
-      </div>
-      <div class="frange" data-range></div>
-    </div>
-  </div>
-
-  <div id="eStart">
-    <button class="pill solid caps big" id="eStartBtn">New Question</button>
-  </div>
-
-  <div id="eBody" hidden>
-  <div id="eqwrapL"><canvas id="eqL"></canvas></div>
-
-  <div id="question"></div>
-  <div id="eAnswers"></div>
-
-  <div class="bar" style="margin-top:44px;border-bottom:none;border-top:1px solid var(--line);
-       padding-top:24px;align-items:center">
-    <div class="field"><span class="micro">Monitor</span>
-      <div style="display:flex;gap:8px">
-        <button class="pill sm" id="eDry">Dry</button>
-        <button class="pill sm on" id="eWet">Processed</button>
-        <button class="pill sm" id="eSolo" title="켜면 버튼을 클릭할 때 답을 내는 대신 그 대역을 미리 들어보세요">Solo Audition</button>
-      </div>
-    </div>
-    <div class="grow"></div>
-    <div class="stat"><span class="micro">Session</span><b id="eSess">0 / 0</b></div>
-    <div class="stat"><span class="micro">Streak</span><b id="eStreak">0</b></div>
-    <div class="stat"><span class="micro">Applied</span><b id="eApplied">—</b></div>
-  </div>
-  <div class="hint">
-    <kbd>Space</kbd> 재생 · <kbd>D</kbd> Dry↔Processed · <kbd>S</kbd> Solo Audition ·
-    <kbd>Alt</kbd>+클릭 = 그 대역 미리듣기 · <kbd>Enter</kbd> 다음 문제<br>
-    게인은 등청감 보정이 적용됩니다 — 저역·고역 문제는 선택한 dB보다 크게 걸려 체감 난이도가 평준화됩니다.
-  </div>
-  </div>
-</section>
-
-<!-- ══════════ STATS ══════════ -->
-<section id="panel-stats" hidden>
-  <div class="sect" style="margin-top:34px">
-    <h2><span class="idx">01</span>대역별 정답률
-      <span class="grow"></span><span class="micro">octave aggregate</span></h2>
-    <div class="heat" id="heat"></div>
-    <div class="caps" id="heatCaps"></div>
-  </div>
-  <div class="sect">
-    <h2><span class="idx">02</span>취약 대역 진단</h2>
-    <div id="diag" style="font-size:15px">데이터가 쌓이면 표시됩니다.</div>
-  </div>
-  <div class="sect">
-    <h2><span class="idx">03</span>Match 기록</h2>
-    <table id="matchLog"><thead><tr><th>#</th><th>Level</th><th>Score</th><th>Detail</th></tr></thead><tbody></tbody></table>
-  </div>
-  <div class="sect">
-    <button class="ghost" id="resetStats">기록 초기화</button>
-  </div>
-</section>
-
-<div id="folio">
-  <span class="micro">EQ Trainer — personal practice build</span>
-  <span class="micro" id="folioRange">—</span>
-</div>
-
-</div>
-
-<div id="ov" hidden><div id="sheet"></div></div>
-
-<script>
-/* ═══════════════════════════════════════════════════════════
-   DSP — Orfanidis (1997) analog-matched peaking design
-   H(z) = (b0 + b1 z^-1 + b2 z^-2) / (1 + a1 z^-1 + a2 z^-2)
-   Prescribes the Nyquist gain G1 from the analog prototype, so
-   the bell does not "cramp" toward fs/2 the way the RBJ-cookbook
-   biquad (Web Audio's BiquadFilterNode) does.
-   ═══════════════════════════════════════════════════════════ */
-const DSP_SRC = `
-function orfa(f, gDb, q, fs){
-  if(Math.abs(gDb) < 0.01 || f <= 0) return {b0:1,b1:0,b2:0,a1:0,a2:0};
-  var PI = Math.PI;
-  var G  = Math.pow(10, gDb/20), G0 = 1;
-  var GB = Math.sqrt(G0*G);
-  var w0 = 2*PI*f/fs;
-  if(w0 > PI*0.995) w0 = PI*0.995;
-  var Dw = w0/Math.max(0.05, q);
-  var F   = Math.abs(G*G - GB*GB);
-  var G00 = Math.abs(G*G - G0*G0);
-  var F00 = Math.abs(GB*GB - G0*G0);
-  if(F < 1e-12 || G00 < 1e-12) return {b0:1,b1:0,b2:0,a1:0,a2:0};
-  var wp = (w0*w0 - PI*PI);
-  var num = G0*G0*wp*wp + G*G*F00*PI*PI*Dw*Dw/F;
-  var den = wp*wp + F00*PI*PI*Dw*Dw/F;
-  var G1  = Math.sqrt(num/den);
-  var G01 = Math.abs(G*G  - G0*G1);
-  var G11 = Math.abs(G*G  - G1*G1);
-  var F01 = Math.abs(GB*GB - G0*G1);
-  var F11 = Math.abs(GB*GB - G1*G1);
-  if(F11 < 1e-12) F11 = 1e-12;
-  var W2 = Math.sqrt(G11/G00) * Math.pow(Math.tan(w0/2), 2);
-  var DW = (1 + Math.sqrt(F00/F11)*W2) * Math.tan(Dw/2);
-  var C  = F11*DW*DW - 2*W2*(F01 - Math.sqrt(F00*F11));
-  var D  = 2*W2*(G01 - Math.sqrt(G00*G11));
-  var A  = Math.sqrt(Math.max(0,(C + D)/F));
-  var B  = Math.sqrt(Math.max(0,(G*G*C + GB*GB*D)/F));
-  var d  = 1 + W2 + A;
-  return {
-    b0:( G1 + G0*W2 + B)/d,
-    b1:-2*((G1 - G0*W2)/d),
-    b2:( G1 - B + G0*W2)/d,
-    a1:-2*((1 - W2)/d),
-    a2:( 1 + W2 - A)/d
-  };
-}
-function bpf(f, q, fs){
-  var w0 = 2*Math.PI*f/fs;
-  if(w0 > Math.PI*0.995) w0 = Math.PI*0.995;
-  var al = Math.sin(w0)/(2*Math.max(0.05,q)), a0 = 1 + al;
-  return {b0:al/a0, b1:0, b2:-al/a0, a1:(-2*Math.cos(w0))/a0, a2:(1-al)/a0};
-}
-`;
-eval(DSP_SRC);   // orfa() / bpf() into main-thread scope
-
-function magDb(c, w){
-  const cw=Math.cos(w), sw=Math.sin(w), c2=Math.cos(2*w), s2=Math.sin(2*w);
-  const nr=c.b0 + c.b1*cw + c.b2*c2, ni=-(c.b1*sw + c.b2*s2);
-  const dr=1 + c.a1*cw + c.a2*c2,    di=-(c.a1*sw + c.a2*s2);
-  return 10*Math.log10((nr*nr+ni*ni)/(dr*dr+di*di) || 1e-12);
-}
-
-/* ═══════════ TRAINING RANGE ═══════════
-   User-set, defaulting to 60 Hz – 12 kHz. Low reproduction is monitor
-   dependent and that region is high-pass territory rather than
-   bell-identification territory; up top content is sparse and hearing varies
-   a lot between people — hence the deliberately limited stops.  */
-const FR_LO=[20,40,60,100], FR_HI=[10000,12000,15000,18000];
-const FR={lo:2, hi:1};                 // indices → 60 Hz … 12 kHz
-let F_LO = FR_LO[FR.lo], F_HI = FR_HI[FR.hi];
-
-/* One fixed band grid — half-octave (ISO R10 halves). Octave would be coarse
-   enough that several of the range stops collapse onto the same band set;
-   third-octave would double the answer buttons. Half-octave is the finest grid
-   where every range stop still changes what you get. */
-const HALF_OCT=[22.4,31.5,45,63,90,125,180,250,355,500,710,
-                1000,1400,2000,2800,4000,5600,8000,11200,16000];
-
-/* Equal-loudness difficulty compensation.
-   The ear is most sensitive around 2–4 kHz, so a fixed dB step is far less
-   audible in the lows. Scale the applied gain by frequency so that the
-   perceived difficulty is roughly flat across the whole range. */
-function earWeight(f){
-  let m;
-  if(f < 2000)      m = 1 + 0.12*Math.log2(2000/f);
-  else if(f > 4000) m = 1 + 0.20*Math.log2(f/4000);
-  else              m = 1;
-  return Math.min(1.8, m);
-}
-const weighted = (f, gDb, cap) => {
-  const g = gDb * earWeight(f);
-  const c = cap || 24;
-  return Math.max(-c, Math.min(c, g));
-};
-
-/* ── AudioWorklet processor ── */
-const WORKLET_SRC = DSP_SRC + `
-class EQProc extends AudioWorkletProcessor {
-  constructor(){
-    super();
-    this.N = 4;
-    this.p = []; this.t = []; this.co = []; this.pc = []; this.st = [];
-    for(let i=0;i<this.N;i++){
-      this.p.push({lf:Math.log(1000), g:0, q:1.4});
-      this.t.push({lf:Math.log(1000), g:0, q:1.4});
-      this.co.push({b0:1,b1:0,b2:0,a1:0,a2:0});
-      this.pc.push({b0:1,b1:0,b2:0,a1:0,a2:0});
-      this.st.push([{x1:0,x2:0,y1:0,y2:0},{x1:0,x2:0,y1:0,y2:0}]);
-    }
-    this.mk = 1; this.mkT = 1; this.solo = -1;
-    this.port.onmessage = e => {
-      const d = e.data;
-      if(d.bands) for(let i=0;i<this.N;i++){
-        const b = d.bands[i] || {f:1000,g:0,q:1.4};
-        this.t[i].lf = Math.log(Math.max(10, b.f));
-        this.t[i].g = b.g; this.t[i].q = b.q;
-      }
-      if(d.makeup !== undefined) this.mkT = d.makeup;
-      if(d.solo   !== undefined) this.solo = d.solo;
-    };
-  }
-  process(inputs, outputs){
-    const inp = inputs[0], out = outputs[0];
-    const n = out[0].length, nCh = out.length;
-    if(!inp || !inp.length || !inp[0]){
-      for(let c=0;c<nCh;c++) out[c].fill(0);
-      return true;
-    }
-    for(let c=0;c<nCh;c++) out[c].set(inp[Math.min(c, inp.length-1)]);
-
-    const a = Math.exp(-n/(sampleRate*0.020));     // 20 ms parameter glide
-    for(let i=0;i<this.N;i++){
-      const p=this.p[i], t=this.t[i];
-      p.lf = t.lf + (p.lf-t.lf)*a;
-      p.g  = t.g  + (p.g -t.g )*a;
-      p.q  = t.q  + (p.q -t.q )*a;
-      this.pc[i] = this.co[i];
-      if(this.solo >= 0){
-        this.co[i] = (i < 2)
-          ? bpf(Math.exp(this.p[this.solo].lf), 3.2, sampleRate)
-          : {b0:1,b1:0,b2:0,a1:0,a2:0};
-      } else {
-        this.co[i] = orfa(Math.exp(p.lf), p.g, p.q, sampleRate);
-      }
-    }
-    for(let i=0;i<this.N;i++){
-      const q=this.pc[i], c=this.co[i];
-      if(q.b0===1&&q.b1===0&&q.b2===0&&q.a1===0&&q.a2===0&&
-         c.b0===1&&c.b1===0&&c.b2===0&&c.a1===0&&c.a2===0) continue;
-      const db0=c.b0-q.b0, db1=c.b1-q.b1, db2=c.b2-q.b2, da1=c.a1-q.a1, da2=c.a2-q.a2;
-      for(let ch=0; ch<nCh; ch++){
-        const s = this.st[i][ch], buf = out[ch];
-        let x1=s.x1, x2=s.x2, y1=s.y1, y2=s.y2;
-        for(let k=0;k<n;k++){
-          const t=(k+1)/n;
-          const b0=q.b0+db0*t, b1=q.b1+db1*t, b2=q.b2+db2*t,
-                a1=q.a1+da1*t, a2=q.a2+da2*t;
-          const x = buf[k] + 1e-20;
-          const y = b0*x + b1*x1 + b2*x2 - a1*y1 - a2*y2;
-          x2=x1; x1=x; y2=y1; y1=y;
-          buf[k]=y;
-        }
-        s.x1=x1; s.x2=x2; s.y1=y1; s.y2=y2;
-      }
-    }
-    const gTgt = this.solo>=0 ? 4 : this.mkT;
-    const ka = Math.exp(-1/(sampleRate*0.015));
-    for(let k=0;k<n;k++){
-      this.mk = gTgt + (this.mk-gTgt)*ka;
-      for(let c=0;c<nCh;c++) out[c][k] *= this.mk;
-    }
-    return true;
-  }
-}
-registerProcessor('eqproc', EQProc);
-`;
-
-/* ═══════════════════ AUDIO GRAPH ═══════════════════ */
-const AC = new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
-const FS = AC.sampleRate;
-const limiter = AC.createDynamicsCompressor();
-limiter.threshold.value = -3; limiter.knee.value = 6; limiter.ratio.value = 14;
-limiter.attack.value = 0.003; limiter.release.value = 0.12;
-const master = AC.createGain(); master.gain.value = 0.36;
-limiter.connect(master); master.connect(AC.destination);
-
-let WL = false;
-
-function makeChain(){
-  const out = AC.createGain(); out.connect(limiter);
-  if(WL){
-    const node = new AudioWorkletNode(AC, 'eqproc', {
-      numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[2],
-      channelCount:2, channelCountMode:'explicit', channelInterpretation:'speakers'
-    });
-    node.connect(out);
-    return {wl:true, node, out, input:node, tap:node, bands:[], solo:-1};
-  }
-  const filters=[];
-  for(let i=0;i<4;i++){
-    const f=AC.createBiquadFilter();
-    f.type='peaking'; f.frequency.value=1000; f.Q.value=1.4; f.gain.value=0;
-    filters.push(f);
-  }
-  for(let i=0;i<3;i++) filters[i].connect(filters[i+1]);
-  const makeup=AC.createGain();
-  filters[3].connect(makeup); makeup.connect(out);
-  return {wl:false, filters, makeup, out, input:filters[0], tap:makeup, bands:[], solo:-1};
-}
-
-const NF=200, fBins=new Float32Array(NF);
-for(let i=0;i<NF;i++) fBins[i]=20*Math.pow(1000,i/(NF-1));
-
-function bandsResponseDb(bands, freqs, out){
-  const res = out || new Float32Array(freqs.length);
-  res.fill(0);
-  for(const b of bands){
-    if(!b || Math.abs(b.g) < 0.01) continue;
-    const c = orfa(b.f, b.g, b.q, FS);
-    for(let i=0;i<freqs.length;i++) res[i] += magDb(c, 2*Math.PI*freqs[i]/FS);
-  }
-  return res;
-}
-function makeupFor(bands){
-  let s=0;
-  const db = bandsResponseDb(bands, fBins);
-  for(let i=0;i<NF;i++){ const m=Math.pow(10, db[i]/20); s += m*m; }
-  return 1/Math.sqrt(s/NF || 1);
-}
-function setBands(ch, bands, solo){
-  ch.bands = bands.slice(0,4);
-  ch.solo = (solo===undefined) ? -1 : solo;
-  if(ch.wl){
-    ch.node.port.postMessage({
-      bands: ch.bands.map(b=>({f:b.f, g:b.g, q:b.q})),
-      makeup: makeupFor(ch.bands), solo: ch.solo
-    });
-  } else {
-    const t = AC.currentTime, T = 0.02;
-    for(let i=0;i<4;i++){
-      const b = ch.bands[i], f = ch.filters[i];
-      if(ch.solo>=0){
-        const s = ch.bands[ch.solo];
-        f.type = i<2 ? 'bandpass' : 'peaking';
-        f.frequency.setTargetAtTime(i<2?s.f:1000, t, T);
-        f.Q.setTargetAtTime(i<2?3.2:1.4, t, T);
-        f.gain.setTargetAtTime(0, t, T);
-      } else if(b){
-        f.type='peaking';
-        f.frequency.setTargetAtTime(Math.max(20,Math.min(20000,b.f)), t, T);
-        f.Q.setTargetAtTime(Math.max(.1,b.q), t, T);
-        f.gain.setTargetAtTime(b.g, t, T);
-      } else { f.type='peaking'; f.gain.setTargetAtTime(0, t, T); }
-    }
-    ch.makeup.gain.setTargetAtTime(ch.solo>=0 ? 4 : makeupFor(ch.bands), t, T);
-  }
-}
-function chainResponseDb(ch, freqs, out){
-  if(ch.wl) return bandsResponseDb(ch.bands, freqs, out);
-  const n=freqs.length, res=out||new Float32Array(n);
-  const m=new Float32Array(n), p=new Float32Array(n);
-  res.fill(0);
-  const fa = freqs instanceof Float32Array ? freqs : Float32Array.from(freqs);
-  for(const f of ch.filters){
-    if(f.type!=='peaking' || Math.abs(f.gain.value)<0.01) continue;
-    f.getFrequencyResponse(fa, m, p);
-    for(let i=0;i<n;i++) res[i] += 20*Math.log10(m[i]||1e-6);
-  }
-  return res;
-}
-
-let A, B, analyser, anaData, preTap, anaPre, anaPreData, anaA, anaAData;
-
-/* ── source ── */
-let buffer=null, srcNode=null, playing=false;
-const bufCache = new Map();
-
-function makeNoise(pink){
-  const len = FS*5, buf = AC.createBuffer(1, len, FS), d = buf.getChannelData(0);
-  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-  for(let i=0;i<len;i++){
-    const w = Math.random()*2-1;
-    if(!pink){ d[i]=w*0.4; continue; }
-    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
-    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
-    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
-    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.09;
-    b6=w*0.115926;
-  }
-  return buf;
-}
-function makeSeamless(buf){
-  const xf = Math.min(Math.floor(FS*0.04), Math.floor(buf.length/8));
-  if(xf < 64) return buf;
-  const len = buf.length - xf;
-  const out = AC.createBuffer(buf.numberOfChannels, len, buf.sampleRate);
-  for(let c=0;c<buf.numberOfChannels;c++){
-    const src = buf.getChannelData(c), dst = out.getChannelData(c);
-    dst.set(src.subarray(0, len));
-    for(let i=0;i<xf;i++){
-      const t=i/xf, w=Math.sin(t*Math.PI/2), v=Math.cos(t*Math.PI/2);
-      dst[i] = src[i]*w + src[len+i]*v;
-    }
-  }
-  return out;
-}
-/* ── transport: position tracking, seek, skip ── */
-let playStart = 0, playOffset = 0, seeking = false, seekPos = 0;
-const wrapPos = t => { const d = buffer ? buffer.duration : 0;
-  return d ? ((t % d) + d) % d : 0; };
-function curPos(){
-  if(!buffer) return 0;
-  return playing ? wrapPos(playOffset + (AC.currentTime - playStart)) : wrapPos(playOffset);
-}
-function stopAudio(keepPos){
-  if(srcNode){
-    if(!keepPos && playing) playOffset = curPos();
-    try{srcNode.stop();}catch(e){}
-    srcNode.disconnect(); srcNode=null;
-  }
-  playing=false; playBtn.textContent='▶'; playBtn.classList.remove('on');
-}
-function startAudio(from){
-  if(live || !buffer) return;   // live capture runs continuously; nothing to start
-  if(AC.state==='suspended') AC.resume();
-  const off = (from!==undefined) ? from : curPos();
-  stopAudio(true);
-  playOffset = wrapPos(off);
-  srcNode = AC.createBufferSource();
-  srcNode.buffer = buffer; srcNode.loop = true;
-  srcNode.connect(A.input); srcNode.connect(B.input);
-  if(preTap) srcNode.connect(preTap);
-  srcNode.start(0, playOffset);
-  playStart = AC.currentTime;
-  playing=true; playBtn.textContent='■'; playBtn.classList.add('on');
-}
-const ensurePlaying = ()=>{ if(!playing) startAudio(); };
-function doSeek(t){
-  const p = wrapPos(t);
-  if(playing) startAudio(p); else { playOffset = p; }
-  paintTransport(p);
-}
-const skip = s => doSeek(curPos() + s);
-const mmss = t => Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
-function paintTransport(pos){
-  const d = buffer ? buffer.duration : 0;
-  const p = pos===undefined ? curPos() : pos;
-  const pct = d ? (p/d)*100 : 0;
-  seekFill.style.width = pct+'%';
-  seekDot.style.left = pct+'%';
-  tcur.textContent = mmss(p);
-  tdur.textContent = mmss(d);
-}
-
-let side='A';
-function setSide(s){
-  side = s;
-  const t = AC.currentTime;
-  A.out.gain.setTargetAtTime(s==='A'?1:0, t, 0.012);
-  B.out.gain.setTargetAtTime(s==='B'?1:0, t, 0.012);
-  mA.classList.toggle('on', s==='A'); mB.classList.toggle('on', s==='B');
-  eWet.classList.toggle('on', s==='A'); eDry.classList.toggle('on', s==='B');
-}
-
-/* ── sample library ── */
-let db=null; const mem=[];
-function openDB(){
-  return new Promise(res=>{
-    try{
-      const q=indexedDB.open('eqtrainer',1);
-      q.onupgradeneeded=e=>e.target.result.createObjectStore('samples',{keyPath:'name'});
-      q.onsuccess=e=>res(e.target.result);
-      q.onerror=()=>res(null); q.onblocked=()=>res(null);
-    }catch(err){ res(null); }
-  });
-}
-function dbAll(){
-  return new Promise(res=>{
-    if(!db) return res(mem);
-    try{ const r=db.transaction('samples').objectStore('samples').getAll();
-      r.onsuccess=()=>res(r.result); r.onerror=()=>res(mem);
-    }catch(err){ res(mem); }
-  });
-}
-function dbPut(rec){
-  return new Promise(res=>{
-    const i=mem.findIndex(x=>x.name===rec.name); i<0?mem.push(rec):mem[i]=rec;
-    if(!db) return res();
-    try{ const t=db.transaction('samples','readwrite');
-      t.objectStore('samples').put(rec); t.oncomplete=res; t.onerror=res;
-    }catch(err){ res(); }
-  });
-}
-function dbDel(name){
-  return new Promise(res=>{
-    const i=mem.findIndex(x=>x.name===name); if(i>=0) mem.splice(i,1);
-    if(!db) return res();
-    try{ const t=db.transaction('samples','readwrite');
-      t.objectStore('samples').delete(name); t.oncomplete=res; t.onerror=res;
-    }catch(err){ res(); }
-  });
-}
-/* ── live tab audio ──
-   A YouTube tab is a different origin, so its sound cannot be reached from
-   here directly. getDisplayMedia is the one route the browser allows: the
-   USER picks the tab and ticks "share tab audio", and that stream is handed
-   to us. It is a live stream, so there is nothing to loop or seek. */
-let live=null, lastSrc='#pink';
-/* The option is always listed — hiding it just left people wondering where it
-   went. If the browser cannot do it, say so when it is picked. */
-function syncSrcUI(){
-  delSrc.hidden = srcSel.value.startsWith('#');   // only user files are deletable
-}
-
-function setLiveUI(on){
-  deck.classList.toggle('live', on);
-  liveNote.hidden = !on;
-}
-function stopLive(){
-  if(!live) return;
-  try{ live.node.disconnect(); }catch(e){}
-  live.stream.getTracks().forEach(t=>{ try{t.stop();}catch(e){} });
-  live=null;
-}
-async function startTabAudio(){
-  let stream;
-  if(!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)){
-    alert('이 브라우저에서는 탭 오디오를 가져올 수 없습니다.\n\n'+
-          '· 크롬 또는 엣지에서 열어 주세요 (파이어폭스·사파리는 탭 소리 공유를 지원하지 않습니다)\n'+
-          '· file:// 로 열었다면 로컬 서버(http://localhost)로 열어야 할 수 있습니다');
-    return false;
-  }
-  /* Without suppressLocalAudioPlayback the captured tab keeps playing to the
-     speakers AND we play an EQ'd copy — you would hear both summed together,
-     which dilutes the boost and makes the exercise meaningless. This constraint
-     (Chrome 105+, default false) hands us the audio exclusively. */
-  const sc = navigator.mediaDevices.getSupportedConstraints
-    ? navigator.mediaDevices.getSupportedConstraints() : {};
-  const audioReq = {echoCancellation:false, noiseSuppression:false, autoGainControl:false};
-  if(sc.suppressLocalAudioPlayback) audioReq.suppressLocalAudioPlayback = true;
-  try{
-    stream = await navigator.mediaDevices.getDisplayMedia({
-      video:true,                       // Chrome requires a video track to be requested
-      audio:audioReq
-    });
-  }catch(err){
-    if(err && err.name!=='NotAllowedError')
-      alert('탭 오디오를 가져오지 못했습니다.\n\n' + err.message +
-            '\n\nfile:// 로 열었다면 로컬 서버로 열어보세요.');
-    return false;
-  }
-  const at = stream.getAudioTracks();
-  stream.getVideoTracks().forEach(t=>t.stop());     // sound only
-  if(!at.length){
-    stream.getTracks().forEach(t=>t.stop());
-    alert('소리가 함께 공유되지 않았습니다.\n\n공유 창에서 "탭" 을 고른 뒤\n왼쪽 아래 "탭 오디오도 공유" 를 체크해 주세요.');
-    return false;
-  }
-  /* the constraint can be ignored silently — ask the track what it actually did,
-     and try once more before telling the user the result will be unreliable */
-  let suppressed = !!(at[0].getSettings && at[0].getSettings().suppressLocalAudioPlayback);
-  if(!suppressed && at[0].applyConstraints){
-    try{
-      await at[0].applyConstraints({suppressLocalAudioPlayback:true});
-      suppressed = !!(at[0].getSettings().suppressLocalAudioPlayback);
-    }catch(e){}
-  }
-  liveWarn.hidden = suppressed;
-
-  stopLive(); stopAudio();
-  if(AC.state==='suspended') AC.resume();
-  const node = AC.createMediaStreamSource(stream);
-  node.connect(A.input); node.connect(B.input);
-  if(preTap) node.connect(preTap);
-  live={stream, node};
-  at[0].addEventListener('ended', async ()=>{      // user hit "공유 중지"
-    stopLive(); setLiveUI(false);
-    srcSel.value='#pink'; if(srcSel._csRefresh) srcSel._csRefresh(); await loadSource('#pink');
-  });
-  setLiveUI(true); updateStatus();
-  return true;
-}
-
-async function refreshSources(keep){
-  const recs = await dbAll();
-  srcSel.innerHTML='';
-  const add=(v,t)=>{const o=document.createElement('option');o.value=v;o.textContent=t;srcSel.appendChild(o);};
-  add('#pink','Pink Noise'); add('#white','White Noise');
-  add('#tab','탭 오디오 (브라우저용 : 유튜브 등)');
-  recs.forEach(r=>add(r.name, r.name));
-  srcSel.value = (keep && [...srcSel.options].some(o=>o.value===keep)) ? keep : '#pink';
-  if(srcSel._csRefresh) srcSel._csRefresh();
-  syncSrcUI();
-  await loadSource(srcSel.value);
-}
-async function loadSource(id){
-  if(id==='#tab'){
-    const ok = await startTabAudio();
-    if(ok){ lastSrc=id; syncSrcUI(); return; }
-    srcSel.value = lastSrc==='#tab' ? '#pink' : lastSrc;
-    if(srcSel._csRefresh) srcSel._csRefresh();
-    return loadSource(srcSel.value);
-  }
-  stopLive(); setLiveUI(false); lastSrc=id; syncSrcUI();
-  if(bufCache.has(id)){
-    buffer=bufCache.get(id); playOffset=0;
-    if(playing) startAudio(0); else paintTransport(0);
-    updateStatus(); return;
-  }
-  let buf;
-  if(id==='#pink') buf = makeNoise(true);
-  else if(id==='#white') buf = makeNoise(false);
-  else {
-    const rec = (await dbAll()).find(r=>r.name===id);
-    if(!rec) return;
-    buf = makeSeamless(await AC.decodeAudioData(rec.data.slice(0)));
-  }
-  bufCache.set(id, buf); buffer = buf;
-  playOffset = 0;
-  if(playing) startAudio(0); else paintTransport(0);
-  updateStatus();
-}
-async function addFiles(files){
-  for(const f of files){
-    if(!f.type.startsWith('audio') && !/\.(wav|mp3|flac|ogg|m4a|aiff?)$/i.test(f.name)) continue;
-    await dbPut({name:f.name, data: await f.arrayBuffer()});
-  }
-  await refreshSources(files[0] && files[0].name);
-}
-
-/* ═══════════════════ STATS ═══════════════════ */
-const OCT=[31.5,63,125,250,500,1000,2000,4000,8000,16000];
-let ST={band:{},log:[]};
-try{ ST = JSON.parse(localStorage.getItem('eqt.stats')) || ST; }catch(e){}
-const saveStats=()=>{ try{ localStorage.setItem('eqt.stats', JSON.stringify(ST)); }catch(e){} };
-function nearestOct(f){ let b=OCT[0]; for(const o of OCT) if(Math.abs(Math.log2(f/o))<Math.abs(Math.log2(f/b))) b=o; return b; }
-function recordBand(f, ok){
-  const k=String(nearestOct(f)), e=ST.band[k]||(ST.band[k]={n:0,ok:0});
-  e.n++; if(ok) e.ok++; saveStats();
-}
-const fmtHz = f => f>=1000 ? (+(f/1000).toFixed(2))+'k' : String(f);
-
-function renderStats(){
-  heat.innerHTML=''; heatCaps.innerHTML='';
-  OCT.forEach(o=>{
-    const e=ST.band[String(o)], r=e&&e.n?e.ok/e.n:null;
-    const col=document.createElement('div'); col.className='col';
-    const bar=document.createElement('div'); bar.className='bar';
-    bar.style.height=(r===null?2:Math.max(3,r*100))+'%';
-    bar.style.background = r===null ? 'var(--line)'
-      : r>=0.8 ? 'var(--ink)' : r>=0.55 ? '#a09b8c' : 'var(--red)';
-    bar.title = e ? o+'Hz  '+e.ok+'/'+e.n : o+'Hz  기록 없음';
-    col.appendChild(bar); heat.appendChild(col);
-    const c=document.createElement('div');
-    c.textContent = fmtHz(o) + (e ? '\n'+Math.round(r*100)+'%' : '\n—');
-    c.style.whiteSpace='pre'; heatCaps.appendChild(c);
-  });
-  const weak = OCT.map(o=>({o,e:ST.band[String(o)]})).filter(x=>x.e&&x.e.n>=5)
-    .map(x=>({o:x.o, r:x.e.ok/x.e.n, n:x.e.n})).sort((a,b)=>a.r-b.r);
-  diag.innerHTML = weak.length
-    ? '<span class="micro">약한 순</span>&nbsp;&nbsp;' + weak.slice(0,3).map(w=>
-        '<b style="font-family:var(--mono);font-size:18px;color:'+
-        (w.r<0.55?'var(--red)':'var(--ink)')+'">'+fmtHz(w.o)+'Hz '+Math.round(w.r*100)+'%</b>'+
-        ' <span style="color:var(--mute)">('+w.n+')</span>').join(' &nbsp;·&nbsp; ')
-    : '<span class="micro">밴드당 5문제 이상 풀면 진단이 나옵니다.</span>';
-  const tb=matchLog.querySelector('tbody'); tb.innerHTML='';
-  ST.log.slice(-20).reverse().forEach((r,i)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML='<td class="num">'+(ST.log.length-i)+'</td><td class="num">0'+r.lv+'</td>'+
-      '<td class="num" style="font-size:17px;font-weight:600'+(r.s<55?';color:var(--red)':'')+'">'+r.s+'</td>'+
-      '<td class="num" style="color:var(--mute)">'+r.d+'</td>';
-    tb.appendChild(tr);
-  });
-}
-
-/* ═══════════════════ OVERLAY SHEET ═══════════════════ */
-let sheetAction=null, sheetTimer=null;
-function showSheet(html, onClose, dock){
-  clearTimeout(sheetTimer);   // a close still in flight must not hide this one
-  sheet.innerHTML = html;
-  sheetAction = onClose || null;
-  ov.classList.toggle('dock', !!dock);
-  ov.hidden = false;
-  requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('show')));
-}
-function closeSheet(run){
-  if(ov.hidden) return;
-  const act = sheetAction; sheetAction=null;
-  ov.classList.remove('show');
-  sheetTimer = setTimeout(()=>{ ov.hidden=true; if(run && act) act(); }, 200);
-}
-ov.addEventListener('click', e=>{
-  if(e.target.closest('[data-stay]')){ closeSheet(false); return; }
-  closeSheet(true);
-});
-
-/* ═══════════════════ MODE 1 — MATCH ═══════════════════ */
-/* Two canvases — the interactive Processing graph and the read-only Listening
-   graph. They share W/H (identical CSS box) so only the 2D context swaps;
-   `cv` stays bound to the Processing canvas for pointer interaction. */
-const cv=eq, cxP=cv.getContext('2d'), cxL=eqL.getContext('2d');
-let cx=cxP;
-const RANGE=21;
-let W=0,H=0;
-const M={target:[], user:[], drag:-1, dragMode:null, active:0, hover:-1, revealed:false};
-let dirty=true;
-
-const LMIN=Math.log10(20), LSPAN=Math.log10(20000)-Math.log10(20);
-const f2x = f => (Math.log10(f)-LMIN)/LSPAN*W;
-const x2f = x => Math.pow(10, LMIN + (x/W)*LSPAN);
-const g2y = g => H/2 - g/RANGE*(H/2-20);
-const y2g = y => (H/2-y)/(H/2-20)*RANGE;
-
-const CN=420, curveF=new Float32Array(CN);
-const bufU=new Float32Array(CN), bufT=new Float32Array(CN);
-for(let i=0;i<CN;i++) curveF[i]=Math.pow(10, LMIN+(i/(CN-1))*LSPAN);
-
-function resizeCanvas(){
-  /* size from whichever canvas is currently laid out; the hidden one has a
-     zero box but gets the same dimensions so it is ready when shown */
-  const vis=[cv,eqL].find(c=>c.offsetParent!==null);
-  const r=(vis||cv).getBoundingClientRect();
-  if(!r.width) return;
-  W=r.width; H=r.height;
-  const dpr=devicePixelRatio||1;
-  for(const [el,g] of [[cv,cxP],[eqL,cxL]]){
-    el.width=Math.round(W*dpr); el.height=Math.round(H*dpr);
-    g.setTransform(dpr,0,0,dpr,0,0);
-  }
-  dirty=true;
-}
-
-let anaOn=false;
-/* Build a spectrum outline. 4.5 dB/oct pink tilt so noise/music reads flat.
-   Each column averages every FFT bin that falls inside it — sampling a single
-   bin per pixel aliases badly up top — then a 3-tap pass smooths the lows,
-   where one bin covers a whole column. */
-const SPEC_STEP = 2;
-let specY = null;
-function specPath(data){
-  const bins=data.length, nyq=FS/2;
-  const n = Math.floor(W/SPEC_STEP)+1;
-  if(!specY || specY.length < n) specY = new Float32Array(n+8);
-  for(let i=0;i<n;i++){
-    const x = i*SPEC_STEP;
-    const f0 = x2f(Math.max(0, x-SPEC_STEP*0.5));
-    const f1 = x2f(Math.min(W, x+SPEC_STEP*0.5));
-    let b0 = Math.max(0, Math.min(bins-1, Math.floor(f0/nyq*bins)));
-    let b1 = Math.max(b0+1, Math.min(bins, Math.ceil(f1/nyq*bins)));
-    let s=0, c=0;
-    for(let b=b0;b<b1;b++){ const v=data[b]; if(isFinite(v)){ s+=v; c++; } }
-    specY[i] = (c ? s/c : -140) + 4.5*Math.log2(Math.max(20, x2f(x))/1000);
-  }
-  cx.beginPath(); cx.moveTo(0, H+3);
-  for(let i=0;i<n;i++){
-    const v = (specY[Math.max(0,i-1)] + specY[i]*2 + specY[Math.min(n-1,i+1)]) / 4;
-    const y = H - (v+92)/62*H;
-    cx.lineTo(i*SPEC_STEP, Math.max(-30, Math.min(H+30, y)));
-  }
-  cx.lineTo(W, H+3);
-}
-/* Pre-EQ (raw source) as a flat wash, post-EQ (after the user's bands) filled
-   and outlined on top — so the effect of your own EQ moves reads directly off
-   the graph, the way a normal EQ plug-in shows it. The target chain is never
-   tapped, so nothing about the answer leaks. */
-/* Pre-EQ (raw source) as a flat wash, post-EQ filled and outlined on top.
-   `showPost` is false in Listening until the answer is in — drawing the
-   processed spectrum before that would show the boost and give the answer
-   away outright. */
-function drawAnalyser(showPost){
-  if(!analyser || !anaOn) return;
-  anaPre.getFloatFrequencyData(anaPreData);
-  specPath(anaPreData); cx.closePath();
-  cx.fillStyle='#f2ede1'; cx.fill();
-
-  if(showPost!==false){
-    const src = (showPost===true) ? anaA : analyser;
-    const buf = (showPost===true) ? anaAData : anaData;
-    src.getFloatFrequencyData(buf);
-    specPath(buf); cx.closePath();
-    cx.fillStyle='rgba(20,19,16,.10)'; cx.fill();
-    specPath(buf);
-    cx.strokeStyle='#b8b09c'; cx.lineWidth=1; cx.stroke();
-  }
-
-  /* legend, parked inside the in-range area so the edge shading can't eat it */
-  const lx = f2x(F_LO)+12;
-  cx.font='500 10.5px '+getComputedStyle(document.body).fontFamily;
-  cx.fillStyle='#e6e0d2'; cx.fillRect(lx, 7, 10, 9);
-  cx.fillStyle='#a9a191'; cx.fillText('PRE', lx+15, 16);
-  if(showPost!==false){
-    cx.fillStyle='#cfc8b6'; cx.fillRect(lx+46, 7, 10, 9);
-    cx.fillStyle='#8e8676'; cx.fillText('POST', lx+61, 16);
-  }
-}
-
-/* grid, range shading and axis labels — shared by both graphs */
-function drawBase(){
-  cx.clearRect(0,0,W,H);
-  cx.fillStyle='#fffefa'; cx.fillRect(0,0,W,H);
-  cx.fillStyle='rgba(20,19,16,.042)';
-  cx.fillRect(0,0,f2x(F_LO),H);
-  cx.fillRect(f2x(F_HI),0,W-f2x(F_HI),H);
-}
-function drawGrid(){
-  const font=getComputedStyle(document.body).fontFamily;
-  cx.font='500 11.5px '+font; cx.lineWidth=1;
-  [31.5,63,125,250,500,1000,2000,4000,8000,16000].forEach(f=>{
-    const x=Math.round(f2x(f))+.5;
-    const inRange = f>=F_LO && f<=F_HI;
-    cx.strokeStyle = inRange ? '#efe9db' : '#f7f2e8';
-    cx.beginPath(); cx.moveTo(x,0); cx.lineTo(x,H-21); cx.stroke();
-    cx.fillStyle = inRange ? '#a8a294' : '#cec9bc';
-    cx.fillText(fmtHz(f), x+5, H-7);
-  });
-  [-18,-12,-6,0,6,12,18].forEach(g=>{
-    const y=Math.round(g2y(g))+.5;
-    cx.strokeStyle = g===0 ? '#dbd5c7' : '#f5f1e7';
-    cx.beginPath(); cx.moveTo(0,y); cx.lineTo(W,y); cx.stroke();
-    cx.fillStyle='#a8a294'; cx.fillText((g>0?'+':'')+g, 6, y-5);
-  });
-  [F_LO,F_HI].forEach(f=>{
-    const x=Math.round(f2x(f))+.5;
-    cx.strokeStyle='#dbd5c7'; cx.setLineDash([2,4]);
-    cx.beginPath(); cx.moveTo(x,0); cx.lineTo(x,H); cx.stroke(); cx.setLineDash([]);
-  });
-  return font;
-}
-const strokeCurve=(arr,color,dash,width)=>{
-  cx.beginPath(); cx.setLineDash(dash||[]);
-  for(let i=0;i<CN;i++){ const x=i/(CN-1)*W, y=g2y(arr[i]); i?cx.lineTo(x,y):cx.moveTo(x,y); }
-  cx.strokeStyle=color; cx.lineWidth=width||2; cx.stroke(); cx.setLineDash([]);
-};
-
-/* ── Listening graph — read-only. No draggable bands; the applied bell is
-   revealed only once the answer has been submitted. ── */
-const bufQ=new Float32Array(CN);
-function drawListen(){
-  if(!W) return;
-  cx=cxL;
-  drawBase();
-  drawAnalyser(E.answered);
-  const font=drawGrid();
-  if(E.q && E.answered){
-    bandsResponseDb([E.q], curveF, bufQ);
-    strokeCurve(bufQ, '#141310', null, 2.2);
-    const x=f2x(E.q.f), y=g2y(E.q.g);
-    cx.strokeStyle='#141310'; cx.setLineDash([3,4]); cx.lineWidth=1;
-    cx.beginPath(); cx.moveTo(x,0); cx.lineTo(x,H); cx.stroke(); cx.setLineDash([]);
-    cx.beginPath(); cx.arc(x,y,9,0,7);
-    cx.fillStyle='#141310'; cx.fill();
-    cx.fillStyle='#fffefa'; cx.font='700 11px '+font;
-    cx.textAlign='center'; cx.textBaseline='middle';
-    cx.fillText('!', x, y+.5);
-    cx.textAlign='start'; cx.textBaseline='alphabetic';
-  } else if(E.q){
-    cx.fillStyle='#a8a294';
-    cx.font='500 11.5px '+font;
-    cx.textAlign='center';
-    cx.fillText('답을 제출하면 적용된 커브가 표시됩니다', W/2, H/2);
-    cx.textAlign='start';
-  }
-}
-
-function drawEQ(){
-  if(!W) return;
-  cx=cxP;
-  drawBase();
-  drawAnalyser();
-  const font=drawGrid();
-  const stroke=strokeCurve;
-  if(M.revealed){
-    bandsResponseDb(M.target, curveF, bufT);
-    stroke(bufT, '#aeaa97', [7,5], 1.5);
-  }
-  bandsResponseDb(M.user, curveF, bufU);
-  cx.beginPath();
-  cx.moveTo(0, g2y(0));
-  for(let i=0;i<CN;i++) cx.lineTo(i/(CN-1)*W, g2y(bufU[i]));
-  cx.lineTo(W, g2y(0)); cx.closePath();
-  cx.fillStyle='rgba(20,19,16,.055)'; cx.fill();
-  stroke(bufU, '#141310', null, 2.2);
-
-  M.user.forEach((b,i)=>{
-    const x=f2x(b.f), y=g2y(b.g);
-    const act=i===M.active, hov=i===M.hover;
-    if(hov||act){ cx.beginPath(); cx.arc(x,y,17,0,7); cx.fillStyle='rgba(20,19,16,.085)'; cx.fill(); }
-    cx.beginPath(); cx.arc(x,y,act?11:9.5,0,7);
-    cx.fillStyle = act ? '#141310' : '#fffefa';
-    cx.fill(); cx.strokeStyle='#141310'; cx.lineWidth=1.7; cx.stroke();
-    cx.fillStyle = act ? '#fffefa' : '#141310';
-    cx.font='700 12px '+font;
-    cx.textAlign='center'; cx.textBaseline='middle';
-    cx.fillText(String(i+1), x, y+.5);
-    cx.textAlign='start'; cx.textBaseline='alphabetic';
-    cx.font='500 11.5px '+font;
-  });
-  if(M.revealed) M.target.forEach(b=>{
-    const x=f2x(b.f), y=g2y(b.g);
-    cx.beginPath(); cx.arc(x,y,7,0,7);
-    cx.strokeStyle='#8e8a7e'; cx.lineWidth=1.5; cx.setLineDash([3,3]); cx.stroke(); cx.setLineDash([]);
-  });
-}
-
-let tFrame=0;
-function loop(){
-  const matchVisible = !document.getElementById('panel-match').hidden;
-  const listenVisible = !document.getElementById('panel-ear').hidden && !eBody.hidden;
-  if(matchVisible && (dirty || anaOn)){ drawEQ(); dirty=false; }
-  else if(listenVisible && (dirty || anaOn)){ drawListen(); dirty=false; }
-  if((tFrame++ % 6)===0 && !seeking) paintTransport();
-  requestAnimationFrame(loop);
-}
-
-/* level = band count / Q / base gain. Frequencies stay inside the set range.
-   Base gains are deliberately large (up to ±15) and Q deliberately wide — the
-   skill being trained is "where", not "how faint". */
-const LEVELS={
-  1:{n:1,g:[11,15],q:[0.7,1.0],inset:[100,6300]},
-  2:{n:1,g:[9,14], q:[0.8,1.4],inset:[80,8000]},
-  3:{n:2,g:[7,12], q:[1.0,1.8],inset:null},
-  4:{n:3,g:[6,10], q:[1.2,2.4],inset:null}
-};
-/* the level's own span, clipped to whatever frequency range is set */
-function levelSpan(cfg){
-  const lo=Math.max(F_LO, cfg.inset?cfg.inset[0]:0);
-  const hi=Math.min(F_HI, cfg.inset?cfg.inset[1]:Infinity);
-  return (hi/lo >= 1.6) ? [lo,hi] : [F_LO,F_HI];
-}
-const rnd=(a,b)=>a+Math.random()*(b-a);
-const rndLog=(a,b)=>Math.pow(10, rnd(Math.log10(a),Math.log10(b)));
-
-function newRound(){
-  const cfg=LEVELS[mLevel.value], span=levelSpan(cfg), t=[]; let guard=0;
-  while(t.length<cfg.n && guard++<600){
-    const f=rndLog(span[0],span[1]);
-    if(t.some(b=>Math.abs(Math.log2(f/b.f))<1.3)) continue;
-    const base=(Math.random()<0.5?-1:1)*rnd(cfg.g[0],cfg.g[1]);
-    t.push({f, g:weighted(f, base, 18), q:rnd(cfg.q[0],cfg.q[1])});
-  }
-  t.sort((a,b)=>a.f-b.f);
-  M.target=t;
-  M.user=t.map((_,i)=>({f:[250,1200,5000][i]||1000, g:0, q:1.4}));
-  M.active=0; M.revealed=false;
-  setBands(A,M.target); setBands(B,M.user);
-  mCheck.disabled=false; mCheck.textContent='Check';
-  setSide('A'); ensurePlaying();
-  renderBoxes(); updateStatus(); dirty=true;
-}
-
-/* ── number boxes ── */
-const fmtF = f => f>=1000 ? (f/1000).toFixed(2)+' kHz' : f.toFixed(0)+' Hz';
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const SCRUB={
-  f:{apply:(v,d)=>clamp(v*Math.pow(2,d/130), 20, 20000)},
-  g:{apply:(v,d)=>clamp(v + d/11, -RANGE, RANGE)},
-  q:{apply:(v,d)=>clamp(v*Math.pow(2,d/150), 0.3, 8)}
-};
-function renderBoxes(){
-  nboxes.innerHTML='';
-  M.user.forEach((b,i)=>{
-    const row=document.createElement('div'); row.className='bandrow';
-    row.innerHTML='<div class="bandtag">'+(i+1)+'</div>'+
-      '<div class="nbox" data-p="f"><div class="k">Freq</div><div class="v">'+fmtF(b.f)+'</div></div>'+
-      '<div class="nbox" data-p="g"><div class="k">Gain</div><div class="v">'+(b.g>=0?'+':'')+b.g.toFixed(1)+' dB</div></div>'+
-      '<div class="nbox" data-p="q"><div class="k">Q</div><div class="v">'+b.q.toFixed(2)+'</div></div>';
-    row.querySelectorAll('.nbox').forEach(el=>attachScrub(el, i, el.dataset.p));
-    nboxes.appendChild(row);
-  });
-  syncBoxes();
-}
-function syncBoxes(){
-  [...nboxes.querySelectorAll('.bandrow')].forEach((row,i)=>{
-    const b=M.user[i]; if(!b) return;
-    const v=row.querySelectorAll('.nbox .v');
-    if(v[0] && !row.querySelector('input')){
-      v[0].textContent=fmtF(b.f);
-      v[1].textContent=(b.g>=0?'+':'')+b.g.toFixed(1)+' dB';
-      v[2].textContent=b.q.toFixed(2);
-    }
-    row.querySelectorAll('.nbox').forEach(n=>n.classList.toggle('act', i===M.active));
-  });
-}
-function attachScrub(el, idx, p){
-  el.addEventListener('pointerdown', e=>{
-    if(el.querySelector('input')) return;
-    M.active=idx; syncBoxes(); dirty=true;
-    el.setPointerCapture(e.pointerId);
-    const y0=e.clientY, v0=M.user[idx][p];
-    const mv=ev=>{
-      const d=(y0-ev.clientY)*(ev.shiftKey?0.18:1);
-      M.user[idx][p]=SCRUB[p].apply(v0,d);
-      setBands(B,M.user); syncBoxes(); dirty=true;
-    };
-    const up=()=>{ el.removeEventListener('pointermove',mv); el.removeEventListener('pointerup',up); };
-    el.addEventListener('pointermove',mv); el.addEventListener('pointerup',up);
-  });
-  el.addEventListener('dblclick', ()=>{
-    const b=M.user[idx], vEl=el.querySelector('.v');
-    const cur = p==='f' ? Math.round(b.f) : p==='g' ? b.g.toFixed(1) : b.q.toFixed(2);
-    vEl.innerHTML='<input value="'+cur+'">';
-    const inp=vEl.querySelector('input'); inp.focus(); inp.select();
-    const commit=()=>{
-      const n=parseFloat(inp.value);
-      if(isFinite(n)) M.user[idx][p]=SCRUB[p].apply(n,0);
-      setBands(B,M.user); renderBoxes(); dirty=true;
-    };
-    inp.addEventListener('blur', commit);
-    inp.addEventListener('keydown', ev=>{
-      if(ev.key==='Enter'){ ev.preventDefault(); commit(); }
-      if(ev.key==='Escape'){ renderBoxes(); }
-      ev.stopPropagation();
-    });
-  });
-}
-
-/* ── canvas interaction ── */
-function nodeAt(x,y){
-  let best=-1, bd=26;
-  for(let i=0;i<M.user.length;i++){
-    const d=Math.hypot(f2x(M.user[i].f)-x, g2y(M.user[i].g)-y);
-    if(d<bd){ bd=d; best=i; }
-  }
-  return best;
-}
-function showTip(i){
-  const b=M.user[i];
-  tip.textContent = fmtF(b.f)+'   '+(b.g>=0?'+':'')+b.g.toFixed(1)+' dB   Q '+b.q.toFixed(2);
-  tip.style.left = clamp(f2x(b.f), 90, W-90)+'px';
-  tip.style.top  = g2y(b.g)+'px';
-  tip.classList.add('on');
-}
-const OCTC=[63,125,250,500,1000,2000,4000,8000,10000];
-cv.addEventListener('pointerdown', e=>{
-  const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
-  const i=nodeAt(x,y); if(i<0) return;
-  M.drag=i; M.active=i; M.dragMode = e.altKey ? 'q' : 'fg';
-  M.dragStart={x, y, f:M.user[i].f, g:M.user[i].g, q:M.user[i].q};
-  cv.setPointerCapture(e.pointerId);
-  showTip(i); syncBoxes(); dirty=true;
-});
-cv.addEventListener('pointermove', e=>{
-  const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
-  if(M.drag<0){
-    const h=nodeAt(x,y);
-    if(h!==M.hover){ M.hover=h; dirty=true; h>=0?showTip(h):tip.classList.remove('on'); }
-    cv.style.cursor = h>=0 ? 'grab' : 'crosshair';
-    return;
-  }
-  const b=M.user[M.drag], s=M.dragStart, fine=e.shiftKey?0.2:1;
-  if(M.dragMode==='q'){
-    b.q = clamp(s.q*Math.pow(2, ((s.y-y)*fine)/150), 0.3, 8);
-  } else {
-    let f = s.f * Math.pow(10, ((x-s.x)*fine/W)*LSPAN);
-    if(e.ctrlKey||e.metaKey){
-      let best=OCTC[0];
-      for(const o of OCTC) if(Math.abs(Math.log2(f/o))<Math.abs(Math.log2(f/best))) best=o;
-      f=best;
-    }
-    b.f = clamp(f, 20, 20000);
-    b.g = clamp(s.g + (s.y-y)*fine/(H/2-20)*RANGE, -RANGE, RANGE);
-  }
-  setBands(B,M.user); syncBoxes(); showTip(M.drag); dirty=true;
-});
-const endDrag=()=>{ if(M.drag>=0){ M.drag=-1; M.dragMode=null; tip.classList.remove('on'); dirty=true; } };
-cv.addEventListener('pointerup', endDrag);
-cv.addEventListener('pointercancel', endDrag);
-cv.addEventListener('pointerleave', ()=>{ if(M.drag<0){ M.hover=-1; tip.classList.remove('on'); dirty=true; } });
-cv.addEventListener('dblclick', e=>{
-  const r=cv.getBoundingClientRect();
-  const i=nodeAt(e.clientX-r.left, e.clientY-r.top);
-  if(i<0) return;
-  M.user[i].g=0; setBands(B,M.user); syncBoxes(); dirty=true;
-});
-cv.addEventListener('wheel', e=>{
-  const r=cv.getBoundingClientRect();
-  const i=nodeAt(e.clientX-r.left, e.clientY-r.top);
-  if(i<0) return;
-  e.preventDefault();
-  M.user[i].q = clamp(M.user[i].q*(e.deltaY>0?1.1:1/1.1), 0.3, 8);
-  M.active=i; setBands(B,M.user); syncBoxes(); showTip(i); dirty=true;
-}, {passive:false});
-
-function checkRound(){
-  const t=[...M.target].sort((a,b)=>a.f-b.f);
-  const u=[...M.user].sort((a,b)=>a.f-b.f);
-  let total=0;
-  const rows=t.map((tb,i)=>{
-    const ub=u[i];
-    /* Tolerances are generous on purpose: full credit fades out only at
-       1.5 octaves / 9 dB, and the 1.4 exponent keeps small errors cheap. */
-    const eo=Math.abs(Math.log2(ub.f/tb.f)), ed=Math.abs(ub.g-tb.g);
-    const fs=Math.max(0, 1-Math.pow(eo/1.5, 1.4));
-    const gs=Math.max(0, 1-Math.pow(ed/9,   1.4));
-    const sc=Math.round((fs*0.7 + gs*0.3)*100);
-    total+=sc; recordBand(tb.f, eo<0.5);
-    return '<tr><td class="num">'+(i+1)+'</td>'+
-      '<td class="num">'+Math.round(tb.f)+' Hz · '+(tb.g>0?'+':'')+tb.g.toFixed(1)+' dB · Q'+tb.q.toFixed(1)+'</td>'+
-      '<td class="num">'+Math.round(ub.f)+' Hz · '+(ub.g>0?'+':'')+ub.g.toFixed(1)+' dB</td>'+
-      '<td class="num"'+(eo>=0.8?' style="color:var(--red)"':'')+'>'+eo.toFixed(2)+' oct</td>'+
-      '<td class="num">'+ed.toFixed(1)+' dB</td>'+
-      '<td class="num" style="font-weight:600;font-size:16px'+(sc<55?';color:var(--red)':'')+'">'+sc+'</td></tr>';
-  });
-  const score=Math.round(total/t.length);
-  ST.log.push({lv:+mLevel.value, s:score, d:t.map((tb,i)=>Math.round(tb.f)+'→'+Math.round(u[i].f)).join(', ')});
-  if(ST.log.length>200) ST.log=ST.log.slice(-200);
-  saveStats(); renderStats();
-  M.revealed=true; mCheck.textContent='Next'; dirty=true;
-
-  showSheet(
-    '<div class="dockhead">'+
-      '<div class="sc"><div class="micro">Level 0'+mLevel.value+' · Result</div>'+
-      '<div class="verdict'+(score<55?' no':'')+'">'+score+
-        '<span style="font-size:.32em;font-weight:400;letter-spacing:0;color:var(--mute)"> / 100</span></div></div>'+
-      '<table><thead><tr><th>#</th><th>Target</th><th>Mine</th><th>Freq err</th><th>Gain err</th><th>Score</th></tr></thead>'+
-      '<tbody>'+rows.join('')+'</tbody></table>'+
-    '</div>'+
-    '<div class="sheetfoot"><span class="micro">아무 곳이나 클릭 → 다음 라운드</span>'+
-    '<span style="flex:1"></span><button class="ghost" data-stay>커브만 보기</button></div>',
-    newRound, true   /* dock to the bottom so the graph stays visible */
-  );
-  /* park the graph above the docked sheet */
-  requestAnimationFrame(()=>{
-    const r = eqwrap.getBoundingClientRect();
-    if(Math.abs(r.top - 12) > 8) scrollBy({top: r.top - 12, behavior:'smooth'});
-  });
-}
-
-/* ═══════════════════ MODE 2 — EAR ═══════════════════ */
-const E={q:null, sess:{n:0,ok:0}, streak:0, answered:false, solo:false};
-const currentSet = ()=> HALF_OCT.filter(f=>f>=F_LO && f<=F_HI);
-
-/* ═══════════ CUSTOM DROPDOWN ═══════════
-   Wraps an existing <select>: the element keeps holding the value and firing
-   `change`, so every caller below is untouched; only the presentation moves
-   from the OS popup to a paper panel. */
-const CHEV = '<svg class="cs-chev" width="12" height="8" viewBox="0 0 12 8" fill="none" '+
-  'stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" '+
-  'aria-hidden="true"><path d="M1 1.9 6 6.4 11 1.9"/></svg>';
-let csOpen=null;
-function closeCS(){ if(csOpen){ csOpen.classList.remove('open'); csOpen=null; } }
-
-function enhanceSelect(sel){
-  const w=sel.closest('.selw');
-  if(!w || w.dataset.cs) return;
-  w.dataset.cs='1'; w.classList.add('cs');
-
-  const trig=document.createElement('button');
-  trig.type='button'; trig.className='cs-trigger';
-  trig.innerHTML='<span class="cs-val"></span>'+CHEV;
-  const val=trig.querySelector('.cs-val');
-  const menu=document.createElement('div');
-  menu.className='cs-menu';
-  w.appendChild(trig); w.appendChild(menu);
-
-  let cursor=0;
-  const rows = ()=>[...menu.children];
-  function paintCursor(){
-    rows().forEach((r,i)=>r.classList.toggle('cursor', i===cursor));
-  }
-  function choose(i){
-    if(i<0 || i>=sel.options.length) return;
-    sel.selectedIndex=i;
-    refresh();
-    close();
-    trig.focus();
-    sel.dispatchEvent(new Event('change'));
-  }
-  function refresh(){
-    const o=sel.options[sel.selectedIndex];
-    val.textContent = o ? o.textContent : '';
-    menu.innerHTML='';
-    [...sel.options].forEach((op,i)=>{
-      const b=document.createElement('button');
-      b.type='button';
-      b.className='cs-opt'+(i===sel.selectedIndex?' sel':'');
-      /* "Beginner — 12 / 15 / 18 dB" splits into a name and a value column;
-         plain labels (file names, Q values) just fill the first column */
-      const p=op.textContent.split(' — ');
-      const s1=document.createElement('span'); s1.className='o1'; s1.textContent=p[0];
-      b.appendChild(s1);
-      if(p.length>1){
-        const s2=document.createElement('span'); s2.className='o2';
-        s2.textContent=p.slice(1).join(' — ');
-        b.appendChild(s2);
-      }
-      b.addEventListener('click', ()=>choose(i));
-      b.addEventListener('mousemove', ()=>{ cursor=i; paintCursor(); });
-      menu.appendChild(b);
-    });
-    cursor=Math.max(0, sel.selectedIndex);
-    paintCursor();
-  }
-  function open(){
-    if(csOpen && csOpen!==w) closeCS();
-    /* flip the panel when it would run past the right edge */
-    const r=trig.getBoundingClientRect();
-    menu.classList.toggle('right', r.left + Math.max(r.width+32, 260) > innerWidth-16);
-    w.classList.add('open'); csOpen=w;
-    cursor=Math.max(0, sel.selectedIndex); paintCursor();
-  }
-  function close(){ if(csOpen===w) closeCS(); }
-
-  trig.addEventListener('click', e=>{ e.stopPropagation(); w.classList.contains('open')?close():open(); });
-  trig.addEventListener('keydown', e=>{
-    if(e.key==='ArrowDown'||e.key==='ArrowUp'||e.key==='Enter'||e.code==='Space'){
-      e.preventDefault(); e.stopPropagation();
-      if(!w.classList.contains('open')) open();
-      else if(e.key==='Enter'||e.code==='Space') choose(cursor);
-      else { cursor=Math.max(0,Math.min(sel.options.length-1,cursor+(e.key==='ArrowDown'?1:-1))); paintCursor(); }
-    } else if(e.key==='Escape'){ close(); }
-  });
-  menu.addEventListener('click', e=>e.stopPropagation());
-
-  sel._csRefresh=refresh;
-  refresh();
-}
-addEventListener('click', closeCS);
-addEventListener('keydown', e=>{ if(e.key==='Escape') closeCS(); }, true);
-
-/* ═══════════ FREQUENCY RANGE CONTROL ═══════════
-   Rendered into every [data-range] host; all instances share FR. */
-const FR_X_LO=[0,11,22,33], FR_X_HI=[67,78,89,100];   // % positions on the track
-const frInstances=[];
-const frLabel = f => f>=1000 ? (f/1000)+'k' : String(f);
-const frText = ()=> frLabel(F_LO)+' Hz – '+
-  (F_HI>=1000 ? (F_HI/1000)+' kHz' : F_HI+' Hz');
-
-function buildRange(host){
-  host.innerHTML =
-    '<div class="fr-track"><div class="fr-fill"></div></div>'+
-    FR_LO.map((f,i)=>'<div class="fr-tick" style="left:'+FR_X_LO[i]+'%"></div>'+
-      '<div class="fr-lab" data-side="lo" data-i="'+i+'" style="left:'+FR_X_LO[i]+'%">'+frLabel(f)+'</div>').join('')+
-    FR_HI.map((f,i)=>'<div class="fr-tick" style="left:'+FR_X_HI[i]+'%"></div>'+
-      '<div class="fr-lab" data-side="hi" data-i="'+i+'" style="left:'+FR_X_HI[i]+'%">'+frLabel(f)+'</div>').join('')+
-    '<button class="fr-h" data-side="lo" title="최저 주파수"></button>'+
-    '<button class="fr-h" data-side="hi" title="최고 주파수"></button>';
-
-  const fill=host.querySelector('.fr-fill');
-  const hs={lo:host.querySelector('.fr-h[data-side=lo]'), hi:host.querySelector('.fr-h[data-side=hi]')};
-
-  host.querySelectorAll('.fr-lab').forEach(l=>{
-    l.onclick=()=>{ FR[l.dataset.side]=+l.dataset.i; applyRange(); };
-  });
-  for(const side of ['lo','hi']){
-    const xs = side==='lo' ? FR_X_LO : FR_X_HI;
-    const h = hs[side];
-    const pick = e=>{
-      const r=host.getBoundingClientRect();
-      const pct=((e.clientX-r.left)/r.width)*100;
-      let best=0;
-      xs.forEach((x,i)=>{ if(Math.abs(x-pct)<Math.abs(xs[best]-pct)) best=i; });
-      if(FR[side]!==best){ FR[side]=best; applyRange(); }   // snaps, never glides
-    };
-    h.addEventListener('pointerdown', e=>{ h.setPointerCapture(e.pointerId); h.dataset.drag='1'; pick(e); });
-    h.addEventListener('pointermove', e=>{ if(h.dataset.drag) pick(e); });
-    const up=()=>{ delete h.dataset.drag; };
-    h.addEventListener('pointerup', up);
-    h.addEventListener('pointercancel', up);
-    h.addEventListener('keydown', e=>{
-      const d = e.key==='ArrowLeft' ? -1 : e.key==='ArrowRight' ? 1 : 0;
-      if(!d) return;
-      e.preventDefault();
-      const n=Math.max(0, Math.min(xs.length-1, FR[side]+d));
-      if(n!==FR[side]){ FR[side]=n; applyRange(); }
-    });
-  }
-  const sync=()=>{
-    const a=FR_X_LO[FR.lo], b=FR_X_HI[FR.hi];
-    hs.lo.style.left=a+'%'; hs.hi.style.left=b+'%';
-    fill.style.left=a+'%'; fill.style.width=(b-a)+'%';
-    host.querySelectorAll('.fr-lab').forEach(l=>
-      l.classList.toggle('on', FR[l.dataset.side]===+l.dataset.i));
-  };
-  sync();
-  frInstances.push(sync);
-}
-function applyRange(){
-  F_LO=FR_LO[FR.lo]; F_HI=FR_HI[FR.hi];
-  frInstances.forEach(f=>f());
-  dirty=true;
-  if(mode==='ear' && E.q) newQuestion();   // only if a question is already up
-  if(mode==='match') newRound();
-  updateStatus();
-}
-
-/* four tiers, each a fixed set of steps — one is picked at random per question
-   so the cue varies, but only these exact values ever occur */
-const GAIN_TIERS={
-  beginner    :[12,15,18],
-  intermediate:[6,9,12],
-  advanced    :[4,6],
-  expert      :[3,4]
-};
-const tierLabel = ()=> eGain.selectedOptions[0].textContent.split('—')[0].trim();
-
-function newQuestion(){
-  eStart.hidden=true; eBody.hidden=false;
-  const set=currentSet();
-  const f=set[Math.floor(Math.random()*set.length)];
-  const mode=eMode.value;
-  const tier=GAIN_TIERS[eGain.value] || GAIN_TIERS.beginner;
-  const base=tier[Math.floor(Math.random()*tier.length)];
-  let g, q=+eQ.value;
-  if(mode==='which')      g = weighted(f, base);
-  else if(mode==='dir')   g = weighted(f, (Math.random()<0.5?-1:1)*base);
-  else { g = -22*(1 + (earWeight(f)-1)*0.5); q = 4.5; }   /* notch: milder weighting */
-  E.q={f,g,q,mode,base}; E.answered=false;
-  setBands(A,[{f,g,q}]); setBands(B,[]);
-  question.textContent = mode==='which' ? '어느 대역이 부스트 되었을까요?'
-    : mode==='dir' ? fmtHz(f)+'Hz — 부스트일까요, 컷일까요?'
-    : '어느 대역이 깎였을까요?';
-  eApplied.textContent = '—';   /* revealed with the answer, not before */
-  renderAnswers(); setSide('A'); ensurePlaying(); updateStatus();
-  resizeCanvas(); dirty=true;
-}
-function renderAnswers(){
-  eAnswers.innerHTML='';
-  const wrap=document.createElement('div');
-  if(E.q && E.q.mode==='dir'){
-    wrap.className='bigbtns';
-    [['boost','▲  BOOST'],['cut','▼  CUT']].forEach(([k,t])=>{
-      const b=document.createElement('button'); b.className='pill'; b.textContent=t;
-      b.dataset.k=k; b.onclick=()=>answer(k); wrap.appendChild(b);
-    });
-  } else {
-    wrap.className='bandBtns';
-    currentSet().forEach(f=>{
-      const b=document.createElement('button'); b.className='pill'; b.textContent=fmtHz(f);
-      b.dataset.f=f;
-      b.onclick=ev=>{ if(E.solo || ev.altKey){ audition(f,b); return; } answer(f); };
-      wrap.appendChild(b);
-    });
-  }
-  eAnswers.appendChild(wrap);
-}
-let audTimer=null;
-function audition(f, btn){
-  setBands(A, [{f, g:0, q:3.2}], 0);
-  setSide('A'); ensurePlaying();
-  [...eAnswers.querySelectorAll('button')].forEach(b=>b.classList.remove('aud'));
-  if(btn) btn.classList.add('aud');
-  clearTimeout(audTimer);
-  audTimer=setTimeout(()=>{
-    if(E.q) setBands(A,[E.q]);
-    [...eAnswers.querySelectorAll('button')].forEach(b=>b.classList.remove('aud'));
-  }, 1600);
-}
-function answer(a){
-  if(!E.q || E.answered) return;
-  E.answered=true;
-  clearTimeout(audTimer); setBands(A,[E.q]);
-  const set=currentSet();
-  let ok, detail;
-  const wStr = '×'+earWeight(E.q.f).toFixed(2)+' (기준 '+(E.q.base?E.q.base.toFixed(1):'—')+' dB · '+tierLabel()+')';
-  if(E.q.mode==='dir'){
-    ok=(a==='boost')===(E.q.g>0);
-    [...eAnswers.querySelectorAll('button')].forEach(b=>{
-      const isB=b.dataset.k==='boost';
-      if(isB===(E.q.g>0)) b.classList.add('hit');
-      else if(a===b.dataset.k) b.classList.add('miss');
-    });
-    detail=[['Frequency', fmtHz(E.q.f)+' Hz'],
-            ['Applied', (E.q.g>0?'Boost +':'Cut ')+E.q.g.toFixed(1)+' dB'],
-            ['Loudness comp.', wStr],
-            ['Q', E.q.q.toFixed(1)],
-            ['Your answer', a==='boost'?'Boost':'Cut']];
-  } else {
-    ok = a===E.q.f;
-    const di=Math.abs(set.indexOf(a)-set.indexOf(E.q.f));
-    const oct=Math.abs(Math.log2(a/E.q.f));
-    [...eAnswers.querySelectorAll('button')].forEach(b=>{
-      const bf=+b.dataset.f;
-      if(bf===E.q.f) b.classList.add('hit');
-      else if(bf===a) b.classList.add(di<=1?'near':'miss');
-    });
-    detail=[['Correct band', fmtHz(E.q.f)+' Hz'],
-            ['Your answer', fmtHz(a)+' Hz'],
-            ['Distance', ok?'—':di+' band / '+oct.toFixed(2)+' octave'],
-            ['Applied', (E.q.g>0?'+':'')+E.q.g.toFixed(1)+' dB · Q'+E.q.q.toFixed(1)],
-            ['Loudness comp.', wStr]];
-  }
-  E.sess.n++; if(ok){ E.sess.ok++; E.streak++; } else E.streak=0;
-  eSess.textContent=E.sess.ok+' / '+E.sess.n;
-  eStreak.textContent=E.streak;
-  eApplied.textContent=(E.q.g>0?'+':'')+E.q.g.toFixed(1)+' dB';
-  dirty=true;
-  recordBand(E.q.f, ok); renderStats(); updateStatus();
-
-  showSheet(
-    '<div class="micro">'+(E.q.mode==='which'?'Which Band':E.q.mode==='dir'?'Boost or Cut':'Cut Detective')+
-    ' · Session '+E.sess.ok+'/'+E.sess.n+'</div>'+
-    '<div class="verdict'+(ok?'':' no')+'">'+(ok?'Correct':'Incorrect')+'</div>'+
-    '<table class="kv" style="margin-top:20px"><tbody>'+
-    detail.map(d=>'<tr><td>'+d[0]+'</td><td>'+d[1]+'</td></tr>').join('')+
-    '</tbody></table>'+
-    '<div class="sheetfoot"><span class="micro">아무 곳이나 클릭 → 다음 문제</span>'+
-    '<span style="flex:1"></span><button class="ghost" data-stay>더 들어보기</button></div>',
-    newQuestion
-  );
-}
-
-/* ═══════════════════ UI ═══════════════════ */
-const MODES={
-  ear  :{idx:'01', name:'Listening',  desc:'부스트·컷된 대역을 귀로 식별하세요'},
-  match:{idx:'02', name:'Processing', desc:'들은 커브를 EQ로 직접 재현하세요'},
-  stats:{idx:'03', name:'Stats',      desc:'대역별 정답률과 취약 대역을 확인하세요'}
-};
-let mode='landing';
-function updateStatus(){
-  const src=srcSel.selectedOptions[0] ? srcSel.selectedOptions[0].textContent : '—';
-  let s;
-  if(mode==='landing') s='EQ Trainer';
-  else if(mode==='match') s='Processing · Level 0'+mLevel.value+' · '+M.target.length+' band · '+src;
-  else if(mode==='ear') s='Listening · '+eMode.selectedOptions[0].textContent.split('—')[0].trim()+
-    ' · '+frText()+' · '+currentSet().length+' bands · '+tierLabel()+' · '+src;
-  else s='Statistics';
-  statusBar.textContent=s;
-  if(mode!=='landing'){
-    secIdx.textContent=MODES[mode].idx;
-    secName.textContent=MODES[mode].name;
-    secDesc.textContent=MODES[mode].desc;
-  }
-  specRange.textContent=frText();
-  folioRange.textContent=frText();
-  const n=currentSet().length;
-  specBands.textContent='Half-octave · '+n+' bands';
-  document.querySelectorAll('[data-bandcount]').forEach(e=>
-    e.textContent=frText()+' · '+n+' bands');
-}
-function setMode(m){
-  mode=m;
-  const home = (m==='landing');
-  nav.hidden = home; deck.hidden = home; sectitle.hidden = home;
-  document.getElementById('panel-landing').hidden = !home;
-  ['match','ear','stats'].forEach(k=>document.getElementById('panel-'+k).hidden=(k!==m));
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on', x.dataset.mode===m));
-  if(home){
-    stopAudio();
-    /* a live capture keeps streaming — mute both chains instead */
-    const t=AC.currentTime;
-    if(A) A.out.gain.setTargetAtTime(0,t,0.02);
-    if(B) B.out.gain.setTargetAtTime(0,t,0.02);
-  } else if(A){ setSide(side); }
-  if(m==='match'){ setBands(A,M.target); setBands(B,M.user); resizeCanvas(); dirty=true; }
-  if(m==='ear'){
-    /* entering Listening always lands on the start screen — no stale question,
-       no graph. The graph only ever appears once New Question is pressed. */
-    E.q=null; E.answered=false;
-    setBands(A,[]); setBands(B,[]);
-    question.textContent=''; eAnswers.innerHTML=''; eApplied.textContent='—';
-    eStart.hidden=false; eBody.hidden=true;
-    dirty=true;
-  }
-  if(m==='stats') renderStats();
-  updateStatus();
-  scrollTo({top:0, behavior:'smooth'});
-}
-document.querySelectorAll('[data-mode]').forEach(t=> t.onclick=()=>setMode(t.dataset.mode));
-wordmark.onclick=()=>setMode('landing');
-playBtn.onclick=()=> playing?stopAudio():startAudio();
-document.querySelectorAll('[data-skip]').forEach(b=> b.onclick=()=> skip(+b.dataset.skip));
-const seekPosFrom = e => {
-  const r=seek.getBoundingClientRect();
-  return clamp((e.clientX-r.left)/r.width, 0, 1) * (buffer ? buffer.duration : 0);
-};
-seek.addEventListener('pointerdown', e=>{
-  if(!buffer) return;
-  seek.setPointerCapture(e.pointerId);
-  seeking=true; seekPos=seekPosFrom(e); paintTransport(seekPos);
-});
-seek.addEventListener('pointermove', e=>{
-  if(!seeking) return;
-  seekPos=seekPosFrom(e); paintTransport(seekPos);
-});
-const endSeek = ()=>{ if(seeking){ seeking=false; doSeek(seekPos); } };
-seek.addEventListener('pointerup', endSeek);
-seek.addEventListener('pointercancel', endSeek);
-anaBtn.onclick=()=>{ anaOn=!anaOn; anaBtn.classList.toggle('on',anaOn); dirty=true; };
-vol.oninput=e=>{ master.gain.value=Math.pow(e.target.value/100,2); volVal.textContent=e.target.value; };
-srcSel.onchange=()=>loadSource(srcSel.value);
-fileIn.onchange=e=>{ addFiles([...e.target.files]); e.target.value=''; };
-delSrc.onclick=async()=>{
-  const v=srcSel.value; if(v.startsWith('#')) return;
-  await dbDel(v); bufCache.delete(v); await refreshSources('#pink');
-};
-mA.onclick=()=>{ setSide('A'); ensurePlaying(); };
-mB.onclick=()=>{ setSide('B'); ensurePlaying(); };
-mCheck.onclick=()=> M.revealed?newRound():checkRound();
-mLevel.onchange=newRound;
-eNew.onclick=newQuestion;
-eStartBtn.onclick=newQuestion;
-eDry.onclick=()=>{ setSide('B'); ensurePlaying(); };
-eWet.onclick=()=>{ if(E.q) setBands(A,[E.q]); setSide('A'); ensurePlaying(); };
-eSolo.onclick=()=>{ E.solo=!E.solo; eSolo.classList.toggle('on',E.solo); };
-/* changing a parameter must not skip past the start screen */
-[eMode,eGain,eQ].forEach(el=>el.onchange=()=>{ if(E.q) newQuestion(); else updateStatus(); });
-resetStats.onclick=()=>{ if(!confirm('모든 기록을 지웁니다.')) return;
-  ST.band={}; ST.log=[]; saveStats(); renderStats(); };
-
-addEventListener('keydown', e=>{
-  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
-  if(!ov.hidden){
-    if(e.key==='Enter'||e.code==='Space'){ e.preventDefault(); closeSheet(true); }
-    if(e.key==='Escape') closeSheet(false);
-    return;
-  }
-  const earOn=!document.getElementById('panel-ear').hidden;
-  const matchOn=!document.getElementById('panel-match').hidden;
-  if(e.code==='Space'){ e.preventDefault(); playing?stopAudio():startAudio(); }
-  else if((e.key==='x'||e.key==='X') && matchOn){ setSide(side==='A'?'B':'A'); ensurePlaying(); }
-  else if((e.key==='d'||e.key==='D') && earOn){
-    if(side==='A'){ setSide('B'); } else { if(E.q) setBands(A,[E.q]); setSide('A'); }
-    ensurePlaying();
-  }
-  else if((e.key==='s'||e.key==='S') && earOn){ eSolo.click(); }
-  else if(e.key==='Enter'){
-    if(matchOn && !mCheck.disabled) mCheck.click();
-    if(earOn) newQuestion();
-  }
-});
-addEventListener('resize', resizeCanvas);
-['dragenter','dragover'].forEach(t=>addEventListener(t,e=>{e.preventDefault();drop.classList.add('on');}));
-['dragleave','drop'].forEach(t=>addEventListener(t,e=>{e.preventDefault(); if(t==='drop'||e.target===drop) drop.classList.remove('on');}));
-addEventListener('drop', e=>{ if(e.dataTransfer.files.length) addFiles([...e.dataTransfer.files]); });
-
-(async function init(){
-  try{
-    const url=URL.createObjectURL(new Blob([WORKLET_SRC],{type:'application/javascript'}));
-    await AC.audioWorklet.addModule(url);
-    URL.revokeObjectURL(url);
-    WL=true;
-  }catch(err){ WL=false; console.warn('AudioWorklet unavailable — Biquad fallback.', err); }
-  /* opened straight off disk: the worklet and tab capture are both blocked and
-     the degradation is silent, so say so once at the top of the page */
-  if(!WL && location.protocol==='file:') fileWarn.hidden=false;
-  fileWarnX.onclick=()=>{ fileWarn.hidden=true; };
-  /* engine choice is not surfaced in the UI; it only matters when debugging,
-     so it goes to the console once. */
-  console.info('EQ engine:', WL ? 'AudioWorklet / Orfanidis' : 'BiquadFilterNode fallback');
-
-  A=makeChain(); B=makeChain(); B.out.gain.value=0;
-  const mkAna = ()=>{
-    const a=AC.createAnalyser();
-    a.fftSize=8192; a.smoothingTimeConstant=0.86;
-    a.minDecibels=-100; a.maxDecibels=-10;
-    return a;
-  };
-  analyser=mkAna(); anaData=new Float32Array(analyser.frequencyBinCount);
-  anaPre =mkAna(); anaPreData=new Float32Array(anaPre.frequencyBinCount);
-  anaA   =mkAna(); anaAData  =new Float32Array(anaA.frequencyBinCount);
-  preTap =AC.createGain(); preTap.connect(anaPre);   // raw source, pre-EQ
-  // Tap the user chain BEFORE its A/B gain, so the spectrum stays visible while
-  // monitoring A. In Processing the target chain is never DRAWN, so nothing
-  // leaks; in Listening anaA is drawn only after the answer is submitted.
-  B.tap.connect(analyser);
-  A.tap.connect(anaA);
-
-  document.querySelectorAll('[data-range]').forEach(buildRange);
-  document.querySelectorAll('.selw select').forEach(enhanceSelect);
-  db=await openDB();
-  await refreshSources();
-  resizeCanvas();
-  newRound(); stopAudio();
-  renderStats(); paintTransport(0);
-  setMode('landing');
-  /* offline support; harmless (and skipped) when opened from disk */
-  if('serviceWorker' in navigator && location.protocol.startsWith('http'))
-    navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:', e));
-  loop();
-})();
-</script>
+<div id="toast" hidden></div>
+<div id="drop" hidden><span>여기에 오디오 파일을 놓으세요</span></div>
+
+<script src="js/sketch.js?v=1792389541"></script>
+<script src="js/nb.js?v=1792389541"></script>
+<script src="js/cursor.js?v=1792389541"></script>
+<script src="js/engine.js?v=1792389541"></script>
+<script src="js/graph.js?v=1792389541"></script>
+<script src="js/app.js?v=1792389541"></script>
+<script src="js/share.js?v=1792389541"></script>
 </body>
 </html>
