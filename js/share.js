@@ -20,7 +20,7 @@
   /* KakaoTalk share: a JavaScript key from developers.kakao.com (내 애플리케이션 →
      앱 키), with https://wltks.github.io and http://localhost:8765 registered
      as Web platform domains. Empty: the KakaoTalk button uses the system sheet. */
-  const KAKAO_KEY = '';
+  const KAKAO_KEY = 'cd7f34c548da0a2379ba085e43b9bc2a';
   const PUBLIC = 'https://wltks.github.io/eq-trainer/';
   let card = null;   /* {blob, url, file} for the sheet that is open */
   let snap = null;   /* the record on that card */
