@@ -278,6 +278,24 @@ function drawPage() {
   const sk = rectOf('subKey');
   SK.underline(over, sk.x, sk.x + sk.w, sk.y + sk.h + 2, { tool: 'pen', seed: SK.hash('sub'), double: true });
 
+  /* a red "!!" after the title, and a swipe of red pen under "Workbook" */
+  const tm = rectOf('tMain'), sr = rectOf('sub'), phone = page.offsetWidth <= 700;
+  NB.text(SK.layer(over, 'pen'), tm.x + tm.w + (phone ? 6 : 18), tm.y + tm.h * 0.42, '!!', { font: KOS, size: (phone ? 44 : 70) * KS, color: '#c41a32', anchor: 'start', rot: 8 });
+  SK.stroke(over, [[tm.x + tm.w * 0.36, sr.y - 30], [tm.x + tm.w * 0.68, sr.y - 22], [tm.x + tm.w * 0.99, sr.y - 38]], { tool: 'pen', seed: 64, w: 3, grow: false, amp: 1.2 });
+
+  /* today's to-do, a torn memo taped below the title's left end */
+  const mw = phone ? 250 : 310, mh = phone ? 132 : 156, mx0 = phone ? tm.x : tm.x - 30, my0 = sr.y + sr.h + (phone ? 44 : 70), rot = -6;
+  SK.torn(under, mx0, my0, mw, mh, { seed: 61, rot, fill: '#fbfaf6', sides: 'tb', amp: 4, shadowOp: 0.32 });
+  SK.tape(over, mx0 + mw / 2, my0 + 2, 96, 28, -9, { seed: 62, color: '#e6e1d6', op: 0.75 });
+  const mg = SK.el('g', { transform: `rotate(${rot} ${mx0 + mw / 2} ${my0 + mh / 2})` }, over), f = phone ? 0.84 : 1;
+  NB.text(mg, mx0 + 24, my0 + 50 * f, '오늘 할 일', { font: KOS, size: 28 * f * KS, color: '#7b766d', anchor: 'start' });
+  [['작업하기', true], ['끝내주게 자기 (ㅠㅠ)', false]].forEach(([txt, done], i) => {
+    const y = my0 + (92 + i * 40) * f, bx = mx0 + 26;
+    SK.box(mg, bx, y - 17 * f, 17 * f, 17 * f, { tool: 'pencil', seed: 65 + i, ov: 0.3 });
+    if (done) SK.stroke(mg, [[bx + 1, y - 10 * f], [bx + 8 * f, y - 1], [bx + 22 * f, y - 26 * f]], { tool: 'pen', seed: 67, grow: false, w: 2.6 });
+    NB.text(mg, bx + 30 * f, y, txt, { font: KOS, size: 34 * f * KS, color: '#34322d', anchor: 'start' });
+  });
+
   /* a polaroid of a pencil study, taped beside the title */
   const pb = boxOf('polaroid');
   if (pb.w) {
