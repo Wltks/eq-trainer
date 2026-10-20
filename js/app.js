@@ -353,15 +353,19 @@ function markSkips() {
     const el = $(id); NB.skip(overlay(el, 'sk'), { x: 0, y: 0, w: el.offsetWidth, h: el.offsetHeight }, back, { seed });
   }
 }
-/* loop switch: a hand-drawn circle of arrows, red when on */
+/* loop switch: the usual repeat sign — two arrows chasing each other round a
+   rounded box — drawn by hand; red when on, faint pencil when off */
 function markLoop() {
   const el = $('loopBtn'); if (!el.offsetWidth) return;
-  const s = overlay(el, 'lp'), on = PREF.loop !== false, cx = el.offsetWidth / 2, cy = el.offsetHeight / 2, r = 11;
-  const arc = SK.arc(cx, cy, r, r * 0.92, -0.4, Math.PI * 1.55, 30);
-  SK.stroke(s, arc, { tool: on ? 'pen' : 'soft', seed: 141, grow: false, amp: 0.3 });
-  const e = arc[arc.length - 1];
-  SK.stroke(s, [[e[0] - 7, e[1] - 4], e, [e[0] - 1, e[1] + 7]], { tool: on ? 'pen' : 'soft', seed: 142, grow: false, amp: 0.2, step: 2 });
-  if (!on) SK.line(s, cx - 13, cy + 12, cx + 13, cy - 12, { tool: 'pencil', seed: 143, grow: false });
+  const s = overlay(el, 'lp'), on = PREF.loop !== false, tool = on ? 'pen' : 'soft';
+  const w = el.offsetWidth, h = el.offsetHeight, x0 = w / 2 - 15, x1 = w / 2 + 15, y0 = h / 2 - 7, y1 = h / 2 + 7, r = 5;
+  const o = { tool, grow: false, amp: 0.25, step: 2, w: on ? 2.2 : 1.6 };
+  /* top run, left to right, coming up out of the left side */
+  SK.stroke(s, [[x0, y1 - 2], [x0, y0 + r], [x0 + r * 0.3, y0 + r * 0.3], [x0 + r, y0], [x1 - 3, y0]], { ...o, seed: 141 });
+  SK.stroke(s, [[x1 - 8, y0 - 4.5], [x1 - 2, y0], [x1 - 8, y0 + 4.5]], { ...o, seed: 142 });
+  /* bottom run, right to left, coming down out of the right side */
+  SK.stroke(s, [[x1, y0 + 2], [x1, y1 - r], [x1 - r * 0.3, y1 - r * 0.3], [x1 - r, y1], [x0 + 3, y1]], { ...o, seed: 143 });
+  SK.stroke(s, [[x0 + 8, y1 - 4.5], [x0 + 2, y1], [x0 + 8, y1 + 4.5]], { ...o, seed: 144 });
 }
 function setLoop(on) { if (typeof srcNode !== 'undefined' && srcNode) srcNode.loop = on; LOOPING = on; }
 $('loopBtn').onclick = () => { PREF.loop = PREF.loop === false; savePrefs(); setLoop(PREF.loop); markLoop(); };
