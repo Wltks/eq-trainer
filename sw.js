@@ -4,7 +4,7 @@
  *   The cache name is the only thing that tells browsers a new version exists.
  *   Forget it and your update reaches nobody: they keep the old cached copy.
  */
-const CACHE = 'eqworkbook-v14';
+const CACHE = 'eqworkbook-v15';
 const FONTS = 'eqworkbook-fonts';
 
 const ASSETS = [
