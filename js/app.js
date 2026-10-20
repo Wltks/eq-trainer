@@ -230,8 +230,7 @@ const UI = {
     if (view === 'proc') { buildTracks(); markSource(); markPlay(); }
   },
   source() {
-    $('srcName').textContent = srcId ? sourceName(srcId) : '선택하세요';
-    $('srcName').classList.toggle('unset', !srcId);
+    showSource(srcId);
     /* noise has no timeline: only a play button; seeking is for files */
     /* noise has no timeline; files and the sample music do */
     const file = !!srcId && (!srcId.startsWith('#') || srcId.startsWith('#m:'));
@@ -331,10 +330,23 @@ function ringIn(s, host, id, tool, seed, pad = 14) {
   if (b.w) SK.loop(s, b.x + b.w / 2, b.y + b.h / 2 + 2, b.w / 2 + pad, b.h / 2 + pad * 0.62, { tool, seed });
 }
 /* source: a filled-in form line with a little caret */
+/* the two labels: kind, and (for music, noise, files) the choice within it */
+function showSource(id) {
+  const k = kindOf(id), item = k && k !== 'tab';
+  $('srcName').textContent = k ? KIND_NAME[k] : '선택하세요';
+  $('srcName').classList.toggle('unset', !k);
+  $('srcItem').textContent = item ? sourceName(id) : '';
+  $('srcItem').hidden = $('caret2').hidden = !item;
+  if (view === 'proc') markSource();
+}
 function markSource() {
-  const host = $('srcRow'), s = overlay(host, 'src'), sn = rel('srcName', host), ca = rel('caret', host);
-  for (let x = sn.x; x < sn.x + sn.w + 30; x += 7) SK.line(s, x, sn.y + sn.h + 6, x + 3.5, sn.y + sn.h + 6.4, { tool: 'soft', seed: x, grow: false, amp: 0.1 });
-  SK.stroke(s, [[ca.x + 2, ca.y + 4], [ca.x + 9, ca.y + 13], [ca.x + 16, ca.y + 3]], { tool: 'pencil', seed: 21, grow: false, step: 2, amp: 0.2 });
+  const host = $('srcRow'), s = overlay(host, 'src');
+  for (const [nm, cr, seed] of [['srcName', 'caret', 21], ['srcItem', 'caret2', 25]]) {
+    if ($(nm).hidden) continue;
+    const sn = rel(nm, host), ca = rel(cr, host);
+    for (let x = sn.x; x < sn.x + sn.w + 30; x += 7) SK.line(s, x, sn.y + sn.h + 6, x + 3.5, sn.y + sn.h + 6.4, { tool: 'soft', seed: x, grow: false, amp: 0.1 });
+    SK.stroke(s, [[ca.x + 2, ca.y + 4], [ca.x + 9, ca.y + 13], [ca.x + 16, ca.y + 3]], { tool: 'pencil', seed, grow: false, step: 2, amp: 0.2 });
+  }
 }
 function markSkips() {
   for (const [id, back, seed] of [['b30', true, 31], ['b10', true, 32], ['f10', false, 33], ['f30', false, 34]]) {
@@ -491,10 +503,19 @@ dragOn($('ruler'), (p) => {
 }, () => { if (rulerMoved) { rulerMoved = false; savePrefs(); newRound(playing); } });
 
 /* ═══════════ source menu ═══════════ */
-/* The list is two-level: four kinds of sound, and for sample music and noise
-   a second slip of paper beside the first with the actual choices. */
+/* Two dropdowns side by side. The first picks the kind of sound; for sample
+   music, noise and your own files a second one appears beside it, and stays,
+   holding the actual choice — so changing songs is one click (or a scroll). */
 const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const kindOf = (id) => !id ? null : id.startsWith('#m:') ? 'music' : (id === '#pink' || id === '#white') ? 'noise' : id === '#tab' ? 'tab' : 'file';
+const KIND_NAME = { music: 'Sample Music', noise: 'Noise', tab: '다른 탭 소리', file: '내 파일' };
+let SRC_LIST = [];
+async function refreshList() { SRC_LIST = await listSources(); return SRC_LIST; }
+const itemsOf = (kind) => SRC_LIST.filter((x) => kindOf(x.id) === kind);
+/* the kinds the first dropdown offers, in order */
+function kinds() {
+  return ['music', 'noise'].concat(SRC_LIST.some((x) => x.id === '#tab') ? ['tab'] : [], itemsOf('file').length ? ['file'] : []);
+}
 /* a slip of paper behind a menu, with the chosen row circled */
 function paperMenu(menu, seed) {
   menu.querySelectorAll(':scope > svg').forEach((x) => x.remove());
@@ -505,56 +526,85 @@ function paperMenu(menu, seed) {
   const on = menu.querySelector('.n.on');
   if (on) { const b = rel(on, menu); SK.loop(s, b.x + b.w / 2, b.y + b.h / 2 + 2, b.w / 2 + 16, b.h / 2 + 10, { tool: 'pen', seed: seed + 2 }); }
 }
-async function openMenu() {
+/* drop a menu straight under the label it belongs to */
+function placeUnder(menu, label) {
+  const cell = menu.offsetParent, r = label.getBoundingClientRect(), cr = cell.getBoundingClientRect(), k = zk();
+  menu.style.left = Math.max(0, (r.left - cr.left) / k - 34) + 'px';
+  menu.style.top = (r.bottom - cr.top) / k + 18 + 'px';
+}
+function openMenu() {
   const menu = $('srcMenu');
   if (!menu.hidden) return closeMenu();
-  const list = await listSources(), k = kindOf(srcId), files = list.filter((x) => x.user);
-  const row = (key, label, more, hint) => `<div class="mi click" data-kind="${key}"><span class="n graphite${k === key ? ' on' : ''}">${label}</span>` +
-    (hint ? `<span class="hint">${hint}</span>` : '') + (more ? '<span class="more">›</span>' : '') + '</div>';
-  menu.innerHTML = row('music', 'Sample Music', true) + row('noise', 'Noise', true) +
-    (list.some((x) => x.id === '#tab') ? row('tab', '다른 탭 소리', false, '브라우저') : '') +
-    /* with files already added, "+ 파일" also lists them */
-    row('file', files.length ? '+ 파일' : '+ 파일 추가…', files.length > 0);
-  menu.hidden = false; $('srcSub').hidden = true;
+  closeMenu();
+  const k = kindOf(srcId);
+  const row = (key, label, hint) => `<div class="mi click" data-kind="${key}"><span class="n graphite${k === key ? ' on' : ''}">${label}</span>` + (hint ? `<span class="hint">${hint}</span>` : '') + '</div>';
+  menu.innerHTML = row('music', 'Sample Music') + row('noise', 'Noise') +
+    (SRC_LIST.some((x) => x.id === '#tab') ? row('tab', '다른 탭 소리', '브라우저') : '') +
+    (itemsOf('file').length ? row('file', '내 파일') : '') +
+    '<div class="sep"></div><div class="mi click" data-kind="add"><span class="n graphite">+ 파일 추가…</span></div>';
+  menu.hidden = false; placeUnder(menu, $('srcName'));
   $('vProc').classList.add('menu-open');   /* above the ruled lines while it is open */
   paperMenu(menu, 91);
 }
-async function openSub(kind, rowEl) {
-  const sub = $('srcSub'), list = await listSources();
-  const items = kind === 'music' ? list.filter((x) => x.id.startsWith('#m:'))
-    : kind === 'noise' ? list.filter((x) => x.id === '#pink' || x.id === '#white')
-    : list.filter((x) => x.user);
-  sub.innerHTML = items.map((x) => `<div class="mi click" data-id="${encodeURIComponent(x.id)}"><span class="n graphite${x.id === srcId ? ' on' : ''}">${esc(x.name)}</span>` +
-    (genreOf(x.id) ? `<span class="hint">${genreOf(x.id)}</span>` : '') + (x.user ? '<span class="del click" data-del="1">지우기</span>' : '') + '</div>').join('') +
-    (kind === 'file' ? '<div class="sep"></div><div class="mi click" data-add="1"><span class="n graphite">+ 새 파일 추가…</span></div>' : '');
-  sub.hidden = false;
-  $('srcMenu').querySelectorAll('.mi').forEach((m) => m.classList.toggle('open', m === rowEl));
-  /* beside the first slip, level with the row; under it where the page is too narrow */
-  const m = $('srcMenu'), cell = sub.offsetParent, r = rowEl.getBoundingClientRect(), mr = m.getBoundingClientRect(), cr = cell.getBoundingClientRect(), k = zk();
-  let left = (mr.right - cr.left) / k + 14, top = (r.top - cr.top) / k - 26;
-  if ((mr.right - cr.left) / k + 14 + sub.offsetWidth > page.offsetWidth - mx() - (cr.left - page.getBoundingClientRect().left) / k) { left = (mr.left - cr.left) / k + 36; top = (r.bottom - cr.top) / k + 4; }
-  sub.style.left = left + 'px'; sub.style.top = top + 'px';
+function openItems() {
+  const sub = $('srcSub');
+  if (!sub.hidden) return closeMenu();
+  closeMenu();
+  const kind = kindOf(srcId);
+  sub.innerHTML = itemsOf(kind).map((x) => `<div class="mi click" data-id="${encodeURIComponent(x.id)}"><span class="n graphite${x.id === srcId ? ' on' : ''}">${esc(x.name)}</span>` +
+    (genreOf(x.id) ? `<span class="hint">${genreOf(x.id)}</span>` : '') + (x.user ? '<span class="del click" data-del="1">지우기</span>' : '') + '</div>').join('');
+  sub.hidden = false; placeUnder(sub, $('srcItem'));
+  $('vProc').classList.add('menu-open');
   paperMenu(sub, 95);
 }
 function closeMenu() { $('srcMenu').hidden = true; $('srcSub').hidden = true; $('vProc').classList.remove('menu-open'); }
-$('srcMenu').addEventListener('click', async (e) => {
+/* picking a kind loads the one last used of that kind (or its first) */
+const lastOf = (kind) => { const l = (PREF.lastSrc || {})[kind]; return itemsOf(kind).some((x) => x.id === l) ? l : (itemsOf(kind)[0] || {}).id; };
+function pickKind(kind) {
+  if (kind === 'add') return $('fileIn').click();
+  if (kind === 'tab') return loadSource('#tab');
+  const id = lastOf(kind); if (id) pick(id);
+}
+function pick(id) {
+  PREF.lastSrc = Object.assign({}, PREF.lastSrc, { [kindOf(id)]: id }); savePrefs();
+  return loadSource(id);
+}
+$('srcMenu').addEventListener('click', (e) => {
   e.stopPropagation();
   const mi = e.target.closest('.mi'); if (!mi) return;
-  const kind = mi.dataset.kind;
-  if (kind === 'tab') { closeMenu(); return loadSource('#tab'); }
-  if (kind === 'file' && !mi.querySelector('.more')) { closeMenu(); return $('fileIn').click(); }
-  openSub(kind, mi);
+  closeMenu(); pickKind(mi.dataset.kind);
 });
 $('srcSub').addEventListener('click', async (e) => {
   e.stopPropagation();
   const mi = e.target.closest('.mi'); if (!mi) return;
-  if (mi.dataset.add) { closeMenu(); return $('fileIn').click(); }
   const id = decodeURIComponent(mi.dataset.id);
-  if (e.target.closest('[data-del]')) { await deleteSource(id); closeMenu(); return; }
-  closeMenu(); await loadSource(id);
+  if (e.target.closest('[data-del]')) { await deleteSource(id); await refreshList(); closeMenu(); return; }
+  closeMenu(); pick(id);
 });
-$('srcName').addEventListener('click', (e) => { e.stopPropagation(); openMenu(); });
-$('caret').addEventListener('click', (e) => { e.stopPropagation(); openMenu(); });
+for (const id of ['srcName', 'caret']) $(id).addEventListener('click', (e) => { e.stopPropagation(); openMenu(); });
+for (const id of ['srcItem', 'caret2']) $(id).addEventListener('click', (e) => { e.stopPropagation(); openItems(); });
+/* scrolling over a dropdown steps to the next / previous choice: the label
+   changes at once, the sound follows when the wheel stops */
+let wheelT = null, wheelId = null;
+function step(list, cur, d) { const i = list.indexOf(cur); return list[(i < 0 ? 0 : (i + d + list.length) % list.length)]; }
+function onWheel(e, which) {
+  if (!e.deltaY) return;
+  e.preventDefault(); closeMenu();
+  const d = e.deltaY > 0 ? 1 : -1;
+  if (which === 'kind') {
+    const ks = kinds().filter((k) => k !== 'tab'), cur = kindOf(wheelId || srcId) || ks[ks.length - 1];
+    wheelId = lastOf(step(ks, cur, d));
+  } else {
+    const kind = kindOf(wheelId || srcId); if (!kind || kind === 'tab') return;
+    wheelId = step(itemsOf(kind).map((x) => x.id), wheelId || srcId, d);
+  }
+  showSource(wheelId);
+  clearTimeout(wheelT); wheelT = setTimeout(() => { const id = wheelId; wheelId = null; if (id && id !== srcId) pick(id); }, 320);
+}
+$('srcName').parentNode.addEventListener('wheel', (e) => {
+  const t = e.target.closest('#srcName,#caret') ? 'kind' : e.target.closest('#srcItem,#caret2') ? 'item' : null;
+  if (t) onWheel(e, t);
+}, { passive: false });
 addEventListener('click', (e) => { if (!e.target.closest('#srcMenu,#srcSub')) closeMenu(); });
 $('fileIn').onchange = (e) => { addFiles([...e.target.files]); e.target.value = ''; };
 
@@ -814,6 +864,7 @@ PENCIL.apply('red', '.click,.click *,.g-live.hot');
   GRAPH.onGrab = (i) => { M.active = i; updateReadout(); dismissHint(); };
   GRAPH.onMove = () => { setBands(B, M.user); updateReadout(); };
   await initAudio();
+  await refreshList();
   UI.source();
   newRound(false);
   if (!WL && location.protocol === 'file:')

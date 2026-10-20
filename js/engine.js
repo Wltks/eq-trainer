@@ -484,7 +484,7 @@ async function addFiles(files){
     await dbPut({name:f.name, data: await f.arrayBuffer()});
     first = first || f.name;
   }
-  if(first){ bufCache.delete(first); await listSources(); await loadSource(first); }
+  if(first){ bufCache.delete(first); await listSources(); if(window.refreshList) await refreshList(); await loadSource(first); }
   else notice('오디오 파일만 넣을 수 있어요 (wav, mp3, flac, ogg, m4a, aiff).');
 }
 async function deleteSource(id){
