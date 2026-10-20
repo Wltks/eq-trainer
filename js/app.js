@@ -42,6 +42,8 @@ let view = 'proc', resultOpen = false, lastResult = null;
 const rnd = (a, b) => a + Math.random() * (b - a);
 const rndLog = (a, b) => 10 ** rnd(Math.log10(a), Math.log10(b));
 
+/* the octave bands of the last question: the next one avoids them */
+let LAST = [];
 function newRound(play) {
   closeResult();
   const n = PREF.lv, t = [];
@@ -52,8 +54,10 @@ function newRound(play) {
     const s = guard < 300 ? span : [F_LO, F_HI];  // a focus window too small for every band
     const f = rndLog(s[0], s[1]);
     if (t.some((b) => Math.abs(Math.log2(f / b.f)) < sep)) continue;
+    if (guard < 900 && LAST.includes(nearestOct(f))) continue;   /* a range too narrow to avoid it gives up later */
     t.push({ f, g: GAIN, q: Q });
   }
+  LAST = t.map((b) => nearestOct(b.f));
   t.sort((a, b) => a.f - b.f);
   M.target = t;
   /* your nodes start spread evenly across the range (or the focus window) */
@@ -231,7 +235,10 @@ const UI = {
     /* noise has no timeline: only a play button; seeking is for files */
     /* noise has no timeline; files and the sample music do */
     const file = !!srcId && (!srcId.startsWith('#') || srcId.startsWith('#m:'));
-    if ($('vProc').classList.contains('file') !== file) { $('vProc').classList.toggle('file', file); if (view === 'proc') { buildTracks(); markSkips(); markTour(); } }
+    /* sample music: no 30-second jumps (it is only 75 s long), a loop switch instead */
+    $('vProc').classList.toggle('sample', !!srcId && srcId.startsWith('#m:'));
+    setLoop(!srcId || !srcId.startsWith('#m:') ? true : PREF.loop !== false);
+    if ($('vProc').classList.contains('file') !== file) { $('vProc').classList.toggle('file', file); if (view === 'proc') { buildTracks(); markSkips(); markLoop(); markTour(); } }
     paintTransport(true); if (view === 'proc') markSource();
     if (srcId) tourDone('src');
   },
@@ -334,6 +341,18 @@ function markSkips() {
     const el = $(id); NB.skip(overlay(el, 'sk'), { x: 0, y: 0, w: el.offsetWidth, h: el.offsetHeight }, back, { seed });
   }
 }
+/* loop switch: a hand-drawn circle of arrows, red when on */
+function markLoop() {
+  const el = $('loopBtn'); if (!el.offsetWidth) return;
+  const s = overlay(el, 'lp'), on = PREF.loop !== false, cx = el.offsetWidth / 2, cy = el.offsetHeight / 2, r = 11;
+  const arc = SK.arc(cx, cy, r, r * 0.92, -0.4, Math.PI * 1.55, 30);
+  SK.stroke(s, arc, { tool: on ? 'pen' : 'soft', seed: 141, grow: false, amp: 0.3 });
+  const e = arc[arc.length - 1];
+  SK.stroke(s, [[e[0] - 7, e[1] - 4], e, [e[0] - 1, e[1] + 7]], { tool: on ? 'pen' : 'soft', seed: 142, grow: false, amp: 0.2, step: 2 });
+  if (!on) SK.line(s, cx - 13, cy + 12, cx + 13, cy - 12, { tool: 'pencil', seed: 143, grow: false });
+}
+function setLoop(on) { if (typeof srcNode !== 'undefined' && srcNode) srcNode.loop = on; LOOPING = on; }
+$('loopBtn').onclick = () => { PREF.loop = PREF.loop === false; savePrefs(); setLoop(PREF.loop); markLoop(); };
 function markPlay() {
   const el = $('play'), s = overlay(el, 'pl'), cx = el.offsetWidth / 2, cy = el.offsetHeight / 2;
   SK.loop(s, cx, cy, 33, 32, { tool: 'pen', seed: 35 });
@@ -389,7 +408,7 @@ function markShare() {
 }
 function drawMarks() {
   page.querySelectorAll('svg.ov').forEach((s) => s.remove());
-  if (view === 'proc') { markSource(); markSkips(); markPlay(); markAna(); markMonitor(); markLevel(); markTally('P'); markFocus(); }
+  if (view === 'proc') { markSource(); markSkips(); markLoop(); markPlay(); markAna(); markMonitor(); markLevel(); markTally('P'); markFocus(); }
   else { markTally('S'); markShare(); markReset(); }
 }
 

@@ -142,6 +142,9 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 #liveMsg p.warn{color:var(--red)}
 #vProc.live #tp{display:none}
 #vProc:not(.file) .tb,#vProc:not(.file) .scrub{display:none}
+#loopBtn{display:none;margin-left:6px}
+#vProc.sample #loopBtn{display:grid}
+#vProc.sample #b30,#vProc.sample #f30{display:none}
 #vProc:not(.live) #liveMsg{display:none}
 .opts{display:flex;gap:36px;margin-top:16px;align-items:baseline}
 .opt{font:calc(clamp(32px,2.1cqw,40px) * var(--ks))/1 var(--ko);white-space:nowrap}
@@ -409,7 +412,7 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
           <span class="tb graphite click" id="b30" data-skip="-30" title="30초 뒤로">30</span><span class="tb graphite click" id="b10" data-skip="-10" title="10초 뒤로">10</span>
           <span class="tplay click" id="play" title="재생 / 정지 (space)"></span>
           <span class="tb graphite click" id="f10" data-skip="10" title="10초 앞으로">10</span><span class="tb graphite click" id="f30" data-skip="30" title="30초 앞으로">30</span>
-          <span class="scrub"><span class="tc" id="tcur">0:00</span><span class="track" id="scrub"></span><span class="tc" id="tdur">0:00</span></span>
+          <span class="scrub"><span class="tc" id="tcur">0:00</span><span class="track" id="scrub"></span><span class="tc" id="tdur">0:00</span><span class="tb click" id="loopBtn" title="반복 재생 켜기 / 끄기"></span></span>
           <span class="vol"><span class="lbl">vol</span><span class="track short" id="vol"></span><span class="tc" id="volVal" style="font-size:26px">60</span></span>
         </div>
         <div id="liveMsg">
@@ -538,12 +541,12 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 <div id="toast" hidden></div>
 <div id="drop" hidden><span>여기에 오디오 파일을 놓으세요</span></div>
 
-<script src="js/sketch.js?v=1792455279"></script>
-<script src="js/nb.js?v=1792455279"></script>
-<script src="js/cursor.js?v=1792455279"></script>
-<script src="js/engine.js?v=1792455279"></script>
-<script src="js/graph.js?v=1792455279"></script>
-<script src="js/app.js?v=1792455279"></script>
-<script src="js/share.js?v=1792455279"></script>
+<script src="js/sketch.js?v=1792455958"></script>
+<script src="js/nb.js?v=1792455958"></script>
+<script src="js/cursor.js?v=1792455958"></script>
+<script src="js/engine.js?v=1792455958"></script>
+<script src="js/graph.js?v=1792455958"></script>
+<script src="js/app.js?v=1792455958"></script>
+<script src="js/share.js?v=1792455958"></script>
 </body>
 </html>

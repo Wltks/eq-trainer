@@ -267,7 +267,7 @@ function makeSeamless(buf){
 }
 
 /* ── transport: position tracking, seek, skip ── */
-let playStart = 0, playOffset = 0;
+let playStart = 0, playOffset = 0, LOOPING = true;
 const wrapPos = t => { const d = buffer ? buffer.duration : 0;
   return d ? ((t % d) + d) % d : 0; };
 function curPos(){
@@ -289,7 +289,10 @@ function startAudio(from){
   stopAudio(true);
   playOffset = wrapPos(off);
   srcNode = AC.createBufferSource();
-  srcNode.buffer = buffer; srcNode.loop = true;
+  srcNode.buffer = buffer; srcNode.loop = LOOPING;
+  /* not looping: at the end it stops and goes back to the start */
+  const me = srcNode;
+  srcNode.onended = () => { if (srcNode === me && !me.loop) { srcNode.disconnect(); srcNode = null; playing = false; playOffset = 0; UI.play(false); } };
   srcNode.connect(A.input); srcNode.connect(B.input);
   if(preTap) srcNode.connect(preTap);
   srcNode.start(0, playOffset);
