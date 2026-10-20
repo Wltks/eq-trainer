@@ -293,11 +293,12 @@ function drawPage() {
   SK.tape(over, mx0 + mw / 2, my0 + 2, 96, 28, -9, { seed: 62, color: '#e6e1d6', op: 0.75 });
   const mg = SK.el('g', { transform: `rotate(${rot} ${mx0 + mw / 2} ${my0 + mh / 2})` }, over), f = phone ? 0.84 : 1;
   NB.text(mg, mx0 + 24, my0 + 50 * f, '오늘 할 일', { font: KOS, size: 28 * f * KS, color: '#7b766d', anchor: 'start' });
-  [['작업하기', true], ['끝내주게 자기 (ㅠㅠ)', false]].forEach(([txt, done], i) => {
+  [['작업하기', true], ['끝내주게 자기', false]].forEach(([txt, done], i) => {
     const y = my0 + (92 + i * 40) * f, bx = mx0 + 26;
     SK.box(mg, bx, y - 17 * f, 17 * f, 17 * f, { tool: 'pencil', seed: 65 + i, ov: 0.3 });
     if (done) SK.stroke(mg, [[bx + 1, y - 10 * f], [bx + 8 * f, y - 1], [bx + 22 * f, y - 26 * f]], { tool: 'pen', seed: 67, grow: false, w: 2.6 });
-    NB.text(mg, bx + 30 * f, y, txt, { font: KOS, size: 34 * f * KS, color: '#34322d', anchor: 'start' });
+    const tx = NB.text(mg, bx + 30 * f, y, txt, { font: KOS, size: 34 * f * KS, color: '#34322d', anchor: 'start' });
+    if (!done) sticker(mg, bx + 30 * f + tx.getComputedTextLength() + 26 * f, y - 10 * f, 18 * f);
   });
 
   /* a polaroid of a pencil study, taped beside the title */
@@ -333,6 +334,24 @@ function drawPage() {
   SK.line(over, X0 - 6, fb.y, X1 + 6, fb.y + 1, { ...RULE, seed: 95 });
 }
 
+/* a die-cut vinyl sticker of the smiling-with-a-tear face, stuck on slightly crooked */
+function sticker(c, cx, cy, r) {
+  const g = SK.el('g', { transform: `rotate(12 ${cx} ${cy})` }, c);
+  const d = SK.el('defs', {}, g);
+  d.innerHTML = `<radialGradient id="stk-face" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#ffe27a"/><stop offset=".7" stop-color="#f7c63c"/><stop offset="1" stop-color="#e9a923"/></radialGradient>
+    <radialGradient id="stk-tear" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#bfe6ff"/><stop offset="1" stop-color="#4fa6e8"/></radialGradient>`;
+  SK.el('circle', { cx: cx + 1.2, cy: cy + 2.2, r: r + 3.6, fill: '#2b2116', opacity: 0.22, filter: 'url(#sk-shadow-s)' }, g);   /* lift */
+  SK.el('circle', { cx, cy, r: r + 3.4, fill: '#fffdf8' }, g);                                                     /* white cut edge */
+  SK.el('circle', { cx, cy, r, fill: 'url(#stk-face)' }, g);
+  const ink = '#5b3a12', k = r / 18;
+  const P = (pts) => pts.map(([x, y]) => [cx + x * k, cy + y * k]);
+  const line = (pts, w, seed) => SK.stroke(g, P(pts), { tool: 'ink', color: ink, w: w * k, seed, grow: false, amp: 0.15, step: 1.5, taper: 0.25, blob: false });
+  line([[-9, -3], [-6, -6.5], [-2.5, -3]], 1.9, 701);   /* happy closed eyes */
+  line([[2.5, -3], [6, -6.5], [9, -3]], 1.9, 702);
+  line([[-8, 4], [0, 10.5], [8, 4]], 2.1, 703);           /* smile */
+  SK.el('path', { d: `M${cx + 9.5 * k} ${cy - 1 * k} C${cx + 6.5 * k} ${cy + 4 * k} ${cx + 7 * k} ${cy + 8.5 * k} ${cx + 10 * k} ${cy + 8.5 * k} C${cx + 13 * k} ${cy + 8.5 * k} ${cx + 13 * k} ${cy + 4 * k} ${cx + 9.5 * k} ${cy - 1 * k}Z`, fill: 'url(#stk-tear)' }, g);   /* the tear */
+  SK.el('ellipse', { cx: cx - 6 * k, cy: cy - 10 * k, rx: 5 * k, ry: 2.6 * k, fill: '#fff', opacity: 0.55, transform: `rotate(-25 ${cx - 6 * k} ${cy - 10 * k})` }, g);   /* vinyl sheen */
+}
 /* ═══════════ stateful marks ═══════════
    Each widget carries its own little svg, so a change (play, A/B, level…)
    repaints that widget — not a page-sized layer of filtered strokes. */
