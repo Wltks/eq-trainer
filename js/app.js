@@ -229,12 +229,14 @@ const UI = {
     $('srcName').textContent = srcId ? sourceName(srcId) : '선택하세요';
     $('srcName').classList.toggle('unset', !srcId);
     /* noise has no timeline: only a play button; seeking is for files */
-    const file = !!srcId && !srcId.startsWith('#');
+    /* noise has no timeline; files and the sample music do */
+    const file = !!srcId && (!srcId.startsWith('#') || srcId.startsWith('#m:'));
     if ($('vProc').classList.contains('file') !== file) { $('vProc').classList.toggle('file', file); if (view === 'proc') { buildTracks(); markSkips(); markTour(); } }
     paintTransport(true); if (view === 'proc') markSource();
     if (srcId) tourDone('src');
   },
   side() { if (view === 'proc') markMonitor(); },
+  loading(on) { if (on) notice('음악을 불러오는 중…'); else $('toast').hidden = true; },
 };
 let toastT = null;
 function notice(msg) {
@@ -475,9 +477,9 @@ async function openMenu() {
   if (!menu.hidden) return closeMenu();
   const list = await listSources();
   const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  menu.innerHTML = list.map((s, i) => (i === 3 ? '<div class="sep"></div>' : '') +
+  menu.innerHTML = '<div class="mh">샘플 음악</div>' + list.map((s, i) => (i === MUSIC.length ? '<div class="sep"></div>' : i > MUSIC.length && list[i - 1].user !== s.user ? '<div class="sep"></div>' : '') +
     `<div class="mi click" data-id="${encodeURIComponent(s.id)}"><span class="n graphite${s.id === srcId ? ' on' : ''}">${esc(s.name)}</span>` +
-    (s.id === '#tab' ? '<span class="hint">유튜브 등</span>' : '') +
+    (s.id === '#tab' ? '<span class="hint">유튜브 등</span>' : genreOf(s.id) ? `<span class="hint">${genreOf(s.id)}</span>` : '') +
     (s.user ? '<span class="del click" data-del="1">지우기</span>' : '') + '</div>').join('') +
     '<div class="sep"></div><div class="mi click" data-add="1"><span class="n graphite">+ 파일 추가…</span></div>';
   menu.hidden = false;

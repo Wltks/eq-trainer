@@ -421,7 +421,16 @@ async function startTabAudio(){
 }
 
 /* ── sources ── */
-const BUILTIN = [['#pink','Pink Noise'],['#white','White Noise'],['#tab','다른 탭 소리']];
+/* sample music: 75-second excerpts, Kevin MacLeod (incompetech.com), CC BY 4.0 */
+const MUSIC = [['funky-chunk','Funky Chunk','펑크'],['rocket-power','Rocket Power','록'],['slow-burn','Slow Burn','블루스'],
+  ['night-in-venice','Night in Venice','재즈'],['bossa-antigua','Bossa Antigua','보사노바'],['blue-ska','Blue Ska','스카'],
+  ['brain-dance','Brain Dance','일렉트로닉'],['porch-swing-days-faster','Porch Swing Days','어쿠스틱'],
+  ['aggressor','Aggressor','오케스트라'],['vibing-over-venus','Vibing Over Venus','라운지']];
+/* another tab's sound comes only through desktop Chromium */
+const canTab = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) &&
+  !(navigator.userAgentData ? navigator.userAgentData.mobile : /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+const BUILTIN = MUSIC.map(([k,n])=>['#m:'+k, n]).concat([['#pink','Pink Noise'],['#white','White Noise']], canTab ? [['#tab','다른 탭 소리']] : []);
+const genreOf = id => { const m = MUSIC.find(x=>'#m:'+x[0]===id); return m ? m[2] : ''; };
 async function listSources(){
   const recs = await dbAll();
   srcNames = recs.map(r=>r.name);
@@ -447,6 +456,12 @@ async function loadSource(id){
   if(!buf){
     if(id==='#pink') buf = makeNoise(true);
     else if(id==='#white') buf = makeNoise(false);
+    else if(id.startsWith('#m:')){
+      UI.loading && UI.loading(true);
+      try{ buf = makeSeamless(await AC.decodeAudioData(await (await fetch('music/'+id.slice(3)+'.mp3')).arrayBuffer())); }
+      catch(e){ notice('음악을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); return; }
+      finally{ UI.loading && UI.loading(false); }
+    }
     else {
       const rec = (await dbAll()).find(r=>r.name===id);
       if(!rec) return clearSource();
