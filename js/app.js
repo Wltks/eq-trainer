@@ -848,6 +848,18 @@ addEventListener('drop', (e) => {
 
 /* ═══════════ frame loop ═══════════ */
 let tick = 0;
+/* the title screen's "keep going" arrow: only while the page sits at the top */
+function drawHint() {
+  const el = $('scrollHint'); el.innerHTML = '';
+  for (let k = 0; k < 3; k++) {
+    const s = SK.el('svg', { width: 64, height: 92 }, el);
+    SK.defs(s);
+    SK.stroke(s, [[32, 6], [31, 38], [33, 74]], { tool: 'pencil', seed: 400 + k * 7, w: 11, grow: false, amp: 1.4, bow: 0.04 });
+    SK.stroke(s, [[12, 54], [33, 80], [53, 52]], { tool: 'pencil', seed: 410 + k * 7, w: 11, grow: false, amp: 1.2, step: 2 });
+  }
+}
+function syncHint() { $('scrollHint').classList.toggle('gone', scrollY > 30); }
+addEventListener('scroll', syncHint, { passive: true });
 function frame(now) {
   if (view === 'proc') GRAPH.render(now);
   if ((tick++ % 6) === 0 && view === 'proc' && !live) paintTransport();
@@ -867,6 +879,7 @@ PENCIL.apply('red', '.click,.click *,.g-live.hot');
   GRAPH.ana = () => (analyser ? { node: analyser, data: anaData } : null);
   GRAPH.onGrab = (i) => { M.active = i; updateReadout(); dismissHint(); };
   GRAPH.onMove = () => { setBands(B, M.user); updateReadout(); };
+  drawHint(); syncHint();
   await initAudio();
   await refreshList();
   UI.source();

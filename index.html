@@ -255,6 +255,18 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 .ss-note{font:13px/1.7 var(--body);color:var(--label);max-width:250px;margin-top:6px}
 #ssClose{position:absolute;right:30px;top:26px;font:15px var(--body);color:var(--label)}
 
+/* ── a thick hand-drawn arrow at the foot of the title screen: three takes of
+   the same arrow swapped in turn (drawn-animation boil) while it bobs ── */
+#scrollHint{position:fixed;left:50%;bottom:110px;width:64px;height:92px;margin-left:-32px;z-index:20;pointer-events:none;
+  transition:opacity .35s;animation:hintBob 1.6s ease-in-out infinite}
+#scrollHint.gone{opacity:0}
+#scrollHint svg{position:absolute;inset:0;overflow:visible;opacity:0;animation:hintBoil .48s steps(1) infinite}
+#scrollHint svg:nth-child(2){animation-delay:-.16s}
+#scrollHint svg:nth-child(3){animation-delay:-.32s}
+@keyframes hintBoil{0%{opacity:1}33.4%{opacity:0}}
+@keyframes hintBob{0%,100%{transform:translateY(0)}50%{transform:translateY(10px)}}
+@media (prefers-reduced-motion:reduce){#scrollHint,#scrollHint svg{animation:none}#scrollHint svg:first-child{opacity:1}}
+
 /* ── notices, file drop ── */
 #toast{position:fixed;left:50%;bottom:34px;z-index:60;transform:translateX(-50%) rotate(-.6deg);
   max-width:min(640px,90vw);padding:22px 30px 20px;background:#fbfaf6;
@@ -540,15 +552,16 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
     <span class="click" id="ssClose">닫기</span>
   </div>
 </div>
+<div id="scrollHint" aria-hidden="true"></div>
 <div id="toast" hidden></div>
 <div id="drop" hidden><span>여기에 오디오 파일을 놓으세요</span></div>
 
-<script src="js/sketch.js?v=1792456199"></script>
-<script src="js/nb.js?v=1792456199"></script>
-<script src="js/cursor.js?v=1792456199"></script>
-<script src="js/engine.js?v=1792456199"></script>
-<script src="js/graph.js?v=1792456199"></script>
-<script src="js/app.js?v=1792456199"></script>
-<script src="js/share.js?v=1792456199"></script>
+<script src="js/sketch.js?v=1792456413"></script>
+<script src="js/nb.js?v=1792456413"></script>
+<script src="js/cursor.js?v=1792456413"></script>
+<script src="js/engine.js?v=1792456413"></script>
+<script src="js/graph.js?v=1792456413"></script>
+<script src="js/app.js?v=1792456413"></script>
+<script src="js/share.js?v=1792456413"></script>
 </body>
 </html>
