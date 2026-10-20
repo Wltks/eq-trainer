@@ -823,7 +823,16 @@ function placePolaroid() {
   if (page.offsetWidth <= 1100 || left + p.offsetWidth > room) { p.style.display = 'none'; return; }
   p.style.right = 'auto'; p.style.left = left + 'px';
 }
+/* the title owns the first screen whatever the zoom or window shape: the
+   band below starts just past the bottom edge */
+function fitTitle() {
+  const m = $('mast'); m.style.minHeight = '';
+  if (page.offsetWidth <= 700) return;
+  const want = (innerHeight + 16) / zk() - SK.box_of(m, page).y;
+  if (want > m.offsetHeight) m.style.minHeight = Math.ceil(want) + 'px';
+}
 function redraw() {
+  fitTitle();
   /* notes need room between the control rows: set before anything is measured */
   $('vProc').classList.toggle('touring', touring());
   placePolaroid();
