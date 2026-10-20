@@ -43,7 +43,9 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 /* sizes below are in cqw — hundredths of this column, not of the window */
 #zoom{position:relative;max-width:var(--col);margin:0 auto;container-type:inline-size}
 /* on a computer the whole page reads at 90 %, as if the browser were zoomed out a step */
-@media (min-width:1000px){ html{zoom:.9} }
+@media (min-width:1000px){ html{zoom:.9}
+  /* the title fills the first screen on its own: the band below starts past the fold */
+  #mast{min-height:calc(100vh / .9 - 70px)} }
 #page{position:relative;padding:0 var(--mx);overflow:hidden;min-height:100vh}
 #page > *{position:relative;z-index:2}
 #page > svg.pg{will-change:transform}
