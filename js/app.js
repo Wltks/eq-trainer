@@ -288,7 +288,7 @@ function drawPage() {
   SK.stroke(over, [[tm.x + tm.w * 0.36, sr.y - 30], [tm.x + tm.w * 0.68, sr.y - 22], [tm.x + tm.w * 0.99, sr.y - 38]], { tool: 'pen', seed: 64, w: 3, grow: false, amp: 1.2 });
 
   /* today's to-do, a torn memo taped below the title's left end */
-  const mw = phone ? 250 : 310, mh = phone ? 132 : 156, mx0 = phone ? tm.x : sr.x - mw - 80, my0 = phone ? sr.y + sr.h + 44 : sr.y + sr.h / 2 - mh / 2 + 10, rot = -6;   /* desktop: left of the line under the title */
+  const mw = phone ? 250 : 310, mh = phone ? 132 : 156, mx0 = phone ? tm.x : sr.x - mw - 48, my0 = phone ? sr.y + sr.h + 44 : sr.y + sr.h / 2 - mh / 2 + 34, rot = -6;   /* desktop: left of the line under the title */
   SK.torn(under, mx0, my0, mw, mh, { seed: 61, rot, fill: '#fbfaf6', sides: 'tb', amp: 4, shadowOp: 0.32 });
   SK.tape(over, mx0 + mw / 2, my0 + 2, 96, 28, -9, { seed: 62, color: '#e6e1d6', op: 0.75 });
   const mg = SK.el('g', { transform: `rotate(${rot} ${mx0 + mw / 2} ${my0 + mh / 2})` }, over), f = phone ? 0.84 : 1;
