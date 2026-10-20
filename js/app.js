@@ -279,12 +279,16 @@ function drawPage() {
   SK.underline(over, sk.x, sk.x + sk.w, sk.y + sk.h + 2, { tool: 'pen', seed: SK.hash('sub'), double: true });
 
   /* a red "!!" after the title, and a swipe of red pen under "Workbook" */
-  const tm = rectOf('tMain'), sr = rectOf('sub'), phone = page.offsetWidth <= 700;
+  const phone = page.offsetWidth <= 700, tm = rectOf('tMain');
+  /* the line under the title is a full-width block: measure its words, not its box */
+  const sr = (() => { const rg = document.createRange(); rg.selectNodeContents($('sub'));
+    const a = rg.getBoundingClientRect(), b = page.getBoundingClientRect(), k = zk();
+    return { x: (a.left - b.left) / k, y: (a.top - b.top) / k, w: a.width / k, h: a.height / k }; })();
   NB.text(SK.layer(over, 'pen'), tm.x + tm.w + (phone ? 6 : 18), tm.y + tm.h * 0.42, '!!', { font: KOS, size: (phone ? 44 : 70) * KS, color: '#c41a32', anchor: 'start', rot: 8 });
   SK.stroke(over, [[tm.x + tm.w * 0.36, sr.y - 30], [tm.x + tm.w * 0.68, sr.y - 22], [tm.x + tm.w * 0.99, sr.y - 38]], { tool: 'pen', seed: 64, w: 3, grow: false, amp: 1.2 });
 
   /* today's to-do, a torn memo taped below the title's left end */
-  const mw = phone ? 250 : 310, mh = phone ? 132 : 156, mx0 = phone ? tm.x : tm.x - 30, my0 = sr.y + sr.h + (phone ? 44 : 70), rot = -6;
+  const mw = phone ? 250 : 310, mh = phone ? 132 : 156, mx0 = phone ? tm.x : sr.x - mw - 80, my0 = phone ? sr.y + sr.h + 44 : sr.y + sr.h / 2 - mh / 2 + 10, rot = -6;   /* desktop: left of the line under the title */
   SK.torn(under, mx0, my0, mw, mh, { seed: 61, rot, fill: '#fbfaf6', sides: 'tb', amp: 4, shadowOp: 0.32 });
   SK.tape(over, mx0 + mw / 2, my0 + 2, 96, 28, -9, { seed: 62, color: '#e6e1d6', op: 0.75 });
   const mg = SK.el('g', { transform: `rotate(${rot} ${mx0 + mw / 2} ${my0 + mh / 2})` }, over), f = phone ? 0.84 : 1;
@@ -815,7 +819,7 @@ function layoutGraph() {
 function placePolaroid() {
   const p = $('polaroid'), t = $('tMain'), mast = $('mast');
   p.style.display = '';
-  const room = mast.offsetWidth + mx() * 0.6, left = $('title').offsetLeft + t.offsetLeft + t.offsetWidth + 44;
+  const room = mast.offsetWidth + mx() * 0.95, left = $('title').offsetLeft + t.offsetLeft + t.offsetWidth + 110;   /* clear of the red !! */
   if (page.offsetWidth <= 1100 || left + p.offsetWidth > room) { p.style.display = 'none'; return; }
   p.style.right = 'auto'; p.style.left = left + 'px';
 }
