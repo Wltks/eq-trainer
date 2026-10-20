@@ -88,19 +88,22 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 .tally{position:relative;display:inline-block;width:0;height:32px;flex:none}
 
 /* source menu: a slip of paper under the name */
-#srcMenu{position:absolute;left:clamp(10px,2.6cqw,52px);top:calc(100% + 18px);z-index:30;min-width:360px;
+#srcMenu,#srcSub{position:absolute;left:clamp(10px,2.6cqw,52px);top:calc(100% + 18px);z-index:30;min-width:300px;
   padding:26px 34px 22px;display:flex;flex-direction:column}
+#srcSub{z-index:31;min-width:320px}
+#srcMenu .mi .more{margin-left:auto;padding-left:28px;font:28px/1 var(--hand);color:var(--label)}
+#srcMenu .mi.open .more{color:var(--red)}
 #page > main.menu-open{z-index:5}
-#srcMenu svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:0}
-#srcMenu .mi{position:relative;z-index:1;display:flex;align-items:baseline;gap:18px;padding:9px 0;
+#srcMenu svg,#srcSub svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:0}
+#srcMenu .mi,#srcSub .mi{position:relative;z-index:1;display:flex;align-items:baseline;gap:18px;padding:9px 0;
   font:30px/1 var(--hand);white-space:nowrap}
-#srcMenu .mi .n{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;max-width:420px}
-#srcMenu .mi .hint,#srcMenu .mi .del{margin-left:auto;padding-left:28px}
-#srcMenu .mi .hint{font:13px var(--body);color:var(--label)}
-#srcMenu .mi .del{font:13px var(--body);color:var(--label)}
-#srcMenu .sep{height:14px}
+#srcMenu .mi .n,#srcSub .mi .n{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+#srcSub .mi .hint,#srcSub .mi .del,#srcMenu .mi .hint{margin-left:auto;padding-left:28px}
+#srcMenu .mi .hint,#srcSub .mi .hint{font:13px var(--body);color:var(--label)}
+#srcSub .mi .del{font:13px var(--body);color:var(--label)}
+#srcSub .sep{height:14px}
 #srcMenu .mh{position:relative;z-index:1;font:12px var(--type);letter-spacing:.24em;text-transform:uppercase;color:var(--label);padding:2px 0 6px}
-#srcMenu{max-height:70vh;overflow:auto}
+#srcSub{max-height:70vh;overflow:auto}
 .credit{font:12px/1.7 var(--body);color:var(--label);margin-top:14px}
 .credit a{color:inherit}
 
@@ -293,7 +296,8 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
   #srcName{font-size:32px;max-width:72cqw}
   #srcName.unset{font-size:calc(32px * var(--ks))}
   #caret{margin-left:-12px}
-  #srcMenu{left:0;min-width:0;width:calc(100cqw - 40px)}
+  #srcMenu{left:0;min-width:0;width:calc(100cqw - 80px)}
+  #srcSub{min-width:0;width:calc(100cqw - 76px)}
   #vProc.touring .srccell{padding-bottom:58px}
   #ex{padding-top:110px}
   .askRow{grid-template-columns:1fr;row-gap:18px}
@@ -376,6 +380,7 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
           <span class="graphite click unset" id="srcName" title="소리 고르기 (파일은 끌어다 놓아도 돼요)">선택하세요</span><span id="caret" class="click"></span>
         </div>
         <div id="srcMenu" hidden></div>
+        <div id="srcSub" hidden></div>
         <input type="file" id="fileIn" accept="audio/*" multiple hidden>
       </div>
       <div class="cell c3">
@@ -531,12 +536,12 @@ body{color:var(--graphite);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 <div id="toast" hidden></div>
 <div id="drop" hidden><span>여기에 오디오 파일을 놓으세요</span></div>
 
-<script src="js/sketch.js?v=1792454597"></script>
-<script src="js/nb.js?v=1792454597"></script>
-<script src="js/cursor.js?v=1792454597"></script>
-<script src="js/engine.js?v=1792454597"></script>
-<script src="js/graph.js?v=1792454597"></script>
-<script src="js/app.js?v=1792454597"></script>
-<script src="js/share.js?v=1792454597"></script>
+<script src="js/sketch.js?v=1792455279"></script>
+<script src="js/nb.js?v=1792455279"></script>
+<script src="js/cursor.js?v=1792455279"></script>
+<script src="js/engine.js?v=1792455279"></script>
+<script src="js/graph.js?v=1792455279"></script>
+<script src="js/app.js?v=1792455279"></script>
+<script src="js/share.js?v=1792455279"></script>
 </body>
 </html>

@@ -472,28 +472,61 @@ dragOn($('ruler'), (p) => {
 }, () => { if (rulerMoved) { rulerMoved = false; savePrefs(); newRound(playing); } });
 
 /* ═══════════ source menu ═══════════ */
+/* The list is two-level: four kinds of sound, and for sample music and noise
+   a second slip of paper beside the first with the actual choices. */
+const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const kindOf = (id) => !id ? null : id.startsWith('#m:') ? 'music' : (id === '#pink' || id === '#white') ? 'noise' : id === '#tab' ? 'tab' : 'file';
+/* a slip of paper behind a menu, with the chosen row circled */
+function paperMenu(menu, seed) {
+  menu.querySelectorAll(':scope > svg').forEach((x) => x.remove());
+  const w = menu.offsetWidth, h = menu.offsetHeight;
+  const s = SK.el('svg', { width: w, height: h }, null); menu.prepend(s);
+  SK.torn(s, 0, 0, w, h, { seed, rot: 0.6, fill: '#fbfaf6', sides: 'b', amp: 3, shadowOp: 0.34, sy: 5 });
+  SK.tape(s, w / 2, 4, 110, 30, -3, { seed: seed + 1, color: '#e6e1d6', op: 0.6 });
+  const on = menu.querySelector('.n.on');
+  if (on) { const b = rel(on, menu); SK.loop(s, b.x + b.w / 2, b.y + b.h / 2 + 2, b.w / 2 + 16, b.h / 2 + 10, { tool: 'pen', seed: seed + 2 }); }
+}
 async function openMenu() {
   const menu = $('srcMenu');
   if (!menu.hidden) return closeMenu();
-  const list = await listSources();
-  const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  menu.innerHTML = '<div class="mh">샘플 음악</div>' + list.map((s, i) => (i === MUSIC.length ? '<div class="sep"></div>' : i > MUSIC.length && list[i - 1].user !== s.user ? '<div class="sep"></div>' : '') +
-    `<div class="mi click" data-id="${encodeURIComponent(s.id)}"><span class="n graphite${s.id === srcId ? ' on' : ''}">${esc(s.name)}</span>` +
-    (s.id === '#tab' ? '<span class="hint">유튜브 등</span>' : genreOf(s.id) ? `<span class="hint">${genreOf(s.id)}</span>` : '') +
-    (s.user ? '<span class="del click" data-del="1">지우기</span>' : '') + '</div>').join('') +
-    '<div class="sep"></div><div class="mi click" data-add="1"><span class="n graphite">+ 파일 추가…</span></div>';
-  menu.hidden = false;
+  const list = await listSources(), k = kindOf(srcId), files = list.filter((x) => x.user);
+  const row = (key, label, more, hint) => `<div class="mi click" data-kind="${key}"><span class="n graphite${k === key ? ' on' : ''}">${label}</span>` +
+    (hint ? `<span class="hint">${hint}</span>` : '') + (more ? '<span class="more">›</span>' : '') + '</div>';
+  menu.innerHTML = row('music', 'Sample Music', true) + row('noise', 'Noise', true) +
+    (list.some((x) => x.id === '#tab') ? row('tab', '다른 탭 소리', false, '브라우저') : '') +
+    /* with files already added, "+ 파일" also lists them */
+    row('file', files.length ? '+ 파일' : '+ 파일 추가…', files.length > 0);
+  menu.hidden = false; $('srcSub').hidden = true;
   $('vProc').classList.add('menu-open');   /* above the ruled lines while it is open */
-  const w = menu.offsetWidth, h = menu.offsetHeight;
-  const s = SK.el('svg', { width: w, height: h }, null); menu.prepend(s);
-  SK.torn(s, 0, 0, w, h, { seed: 91, rot: 0.6, fill: '#fbfaf6', sides: 'b', amp: 3, shadowOp: 0.34, sy: 5 });
-  SK.tape(s, w / 2, 4, 110, 30, -3, { seed: 92, color: '#e6e1d6', op: 0.6 });
-  /* what is chosen is circled in red, the way it is everywhere else */
-  const on = menu.querySelector('.n.on');
-  if (on) { const b = rel(on, menu); SK.loop(s, b.x + b.w / 2, b.y + b.h / 2 + 2, b.w / 2 + 16, b.h / 2 + 10, { tool: 'pen', seed: 93 }); }
+  paperMenu(menu, 91);
 }
-function closeMenu() { $('srcMenu').hidden = true; $('vProc').classList.remove('menu-open'); }
+async function openSub(kind, rowEl) {
+  const sub = $('srcSub'), list = await listSources();
+  const items = kind === 'music' ? list.filter((x) => x.id.startsWith('#m:'))
+    : kind === 'noise' ? list.filter((x) => x.id === '#pink' || x.id === '#white')
+    : list.filter((x) => x.user);
+  sub.innerHTML = items.map((x) => `<div class="mi click" data-id="${encodeURIComponent(x.id)}"><span class="n graphite${x.id === srcId ? ' on' : ''}">${esc(x.name)}</span>` +
+    (genreOf(x.id) ? `<span class="hint">${genreOf(x.id)}</span>` : '') + (x.user ? '<span class="del click" data-del="1">지우기</span>' : '') + '</div>').join('') +
+    (kind === 'file' ? '<div class="sep"></div><div class="mi click" data-add="1"><span class="n graphite">+ 새 파일 추가…</span></div>' : '');
+  sub.hidden = false;
+  $('srcMenu').querySelectorAll('.mi').forEach((m) => m.classList.toggle('open', m === rowEl));
+  /* beside the first slip, level with the row; under it where the page is too narrow */
+  const m = $('srcMenu'), cell = sub.offsetParent, r = rowEl.getBoundingClientRect(), mr = m.getBoundingClientRect(), cr = cell.getBoundingClientRect(), k = zk();
+  let left = (mr.right - cr.left) / k + 14, top = (r.top - cr.top) / k - 26;
+  if ((mr.right - cr.left) / k + 14 + sub.offsetWidth > page.offsetWidth - mx() - (cr.left - page.getBoundingClientRect().left) / k) { left = (mr.left - cr.left) / k + 36; top = (r.bottom - cr.top) / k + 4; }
+  sub.style.left = left + 'px'; sub.style.top = top + 'px';
+  paperMenu(sub, 95);
+}
+function closeMenu() { $('srcMenu').hidden = true; $('srcSub').hidden = true; $('vProc').classList.remove('menu-open'); }
 $('srcMenu').addEventListener('click', async (e) => {
+  e.stopPropagation();
+  const mi = e.target.closest('.mi'); if (!mi) return;
+  const kind = mi.dataset.kind;
+  if (kind === 'tab') { closeMenu(); return loadSource('#tab'); }
+  if (kind === 'file' && !mi.querySelector('.more')) { closeMenu(); return $('fileIn').click(); }
+  openSub(kind, mi);
+});
+$('srcSub').addEventListener('click', async (e) => {
   e.stopPropagation();
   const mi = e.target.closest('.mi'); if (!mi) return;
   if (mi.dataset.add) { closeMenu(); return $('fileIn').click(); }
@@ -503,7 +536,7 @@ $('srcMenu').addEventListener('click', async (e) => {
 });
 $('srcName').addEventListener('click', (e) => { e.stopPropagation(); openMenu(); });
 $('caret').addEventListener('click', (e) => { e.stopPropagation(); openMenu(); });
-addEventListener('click', (e) => { if (!e.target.closest('#srcMenu')) closeMenu(); });
+addEventListener('click', (e) => { if (!e.target.closest('#srcMenu,#srcSub')) closeMenu(); });
 $('fileIn').onchange = (e) => { addFiles([...e.target.files]); e.target.value = ''; };
 
 /* ═══════════ the rest of the controls ═══════════ */
